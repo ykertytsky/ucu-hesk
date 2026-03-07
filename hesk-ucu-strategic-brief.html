@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HESK @ УКУ — Strategic Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Fragment+Mono:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'Bricolage Grotesque', system-ui, sans-serif;
+    --font-mono: 'Fragment Mono', 'SF Mono', Consolas, monospace;
+    --bg: #f0ede8;
+    --surface: #faf8f5;
+    --surface2: #ebe7e0;
+    --surface-elevated: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --border-bright: rgba(0,0,0,0.16);
+    --text: #1c1612;
+    --text-dim: #7a6e64;
+    --amber: #b45309;
+    --amber-dim: rgba(180,83,9,0.08);
+    --amber-mid: rgba(180,83,9,0.18);
+    --red: #b91c1c;
+    --red-dim: rgba(185,28,28,0.08);
+    --green: #166534;
+    --green-dim: rgba(22,101,52,0.08);
+    --slate: #1e3a5f;
+    --slate-dim: rgba(30,58,95,0.08);
+    --slate-mid: rgba(30,58,95,0.15);
+    --teal: #134e4a;
+    --teal-dim: rgba(19,78,74,0.08);
+    --plum: #6b21a8;
+    --plum-dim: rgba(107,33,168,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111009;
+      --surface: #1c1a14;
+      --surface2: #252118;
+      --surface-elevated: #2e291e;
+      --border: rgba(255,255,255,0.07);
+      --border-bright: rgba(255,255,255,0.13);
+      --text: #ede5d8;
+      --text-dim: #9a8e80;
+      --amber: #f59e0b;
+      --amber-dim: rgba(245,158,11,0.1);
+      --amber-mid: rgba(245,158,11,0.2);
+      --red: #f87171;
+      --red-dim: rgba(248,113,113,0.1);
+      --green: #4ade80;
+      --green-dim: rgba(74,222,128,0.1);
+      --slate: #93c5fd;
+      --slate-dim: rgba(147,197,253,0.1);
+      --slate-mid: rgba(147,197,253,0.2);
+      --teal: #5eead4;
+      --teal-dim: rgba(94,234,212,0.1);
+      --plum: #c4b5fd;
+      --plum-dim: rgba(196,181,253,0.1);
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 5% 15%, var(--amber-dim) 0%, transparent 45%),
+      radial-gradient(ellipse at 95% 80%, var(--slate-dim) 0%, transparent 40%),
+      radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: auto, auto, 28px 28px;
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 48px 40px;
+    min-height: 100vh;
+    overflow-wrap: break-word;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeScale {
+    from { opacity: 0; transform: scale(0.93); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .anim { animation: fadeUp 0.42s ease-out both; animation-delay: calc(var(--i,0)*0.05s); }
+  .anim-scale { animation: fadeScale 0.35s ease-out both; animation-delay: calc(var(--i,0)*0.06s); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:0.01ms!important; transition-duration:0.01ms!important; }
+  }
+
+  .page-header { max-width: 1160px; margin: 0 auto 48px; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--amber);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.05;
+    text-wrap: balance;
+    margin-bottom: 14px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-dim);
+    max-width: 680px;
+    line-height: 1.6;
+    font-family: var(--font-mono);
+  }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    max-width: 1160px;
+    margin: 0 auto 40px;
+  }
+  .kpi-card {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .kpi-card__value { font-size: 34px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .kpi-card__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+  .kpi-card__sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; font-family: var(--font-mono); }
+
+  .diagram { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 1160px; margin: 0 auto; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .two-col > * { min-width: 0; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .three-col > * { min-width: 0; }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 26px;
+  }
+  .section--hero {
+    background: var(--surface-elevated);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    padding: 28px 32px;
+  }
+  .section--recessed { background: var(--surface2); box-shadow: inset 0 1px 4px rgba(0,0,0,0.05); }
+  .section--amber { border-color: var(--amber-mid); }
+  .section--amber .section-label { color: var(--amber); }
+  .section--amber .dot { background: var(--amber); }
+  .section--red { border-color: rgba(185,28,28,0.22); }
+  .section--red .section-label { color: var(--red); }
+  .section--red .dot { background: var(--red); }
+  .section--green { border-color: rgba(22,101,52,0.22); }
+  .section--green .section-label { color: var(--green); }
+  .section--green .dot { background: var(--green); }
+  .section--slate { border-color: var(--slate-mid); }
+  .section--slate .section-label { color: var(--slate); }
+  .section--slate .dot { background: var(--slate); }
+  .section--teal { border-color: rgba(19,78,74,0.22); }
+  .section--teal .section-label { color: var(--teal); }
+  .section--teal .dot { background: var(--teal); }
+  .section--plum { border-color: rgba(107,33,168,0.22); }
+  .section--plum .section-label { color: var(--plum); }
+  .section--plum .dot { background: var(--plum); }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 12px; }
+  h3 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+
+  .inner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .inner-grid > * { min-width: 0; }
+  .inner-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .inner-card .title { font-weight: 700; font-size: 12px; margin-bottom: 5px; }
+  .inner-card .desc { color: var(--text-dim); font-size: 12px; line-height: 1.55; }
+
+  .node-list { list-style: none; font-size: 13px; line-height: 1.85; }
+  .node-list li { padding-left: 16px; position: relative; color: var(--text); }
+  .node-list li::before { content: '›'; color: var(--text-dim); font-weight: 700; position: absolute; left: 0; }
+  .node-list code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--amber-dim);
+    color: var(--amber);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .tag-red { font-family: var(--font-mono); font-size: 10px; background: var(--red-dim); color: var(--red); padding: 1px 5px; border-radius: 3px; }
+  .tag-green { font-family: var(--font-mono); font-size: 10px; background: var(--green-dim); color: var(--green); padding: 1px 5px; border-radius: 3px; }
+  .tag-amber { font-family: var(--font-mono); font-size: 10px; background: var(--amber-dim); color: var(--amber); padding: 1px 5px; border-radius: 3px; }
+  .tag-slate { font-family: var(--font-mono); font-size: 10px; background: var(--slate-dim); color: var(--slate); padding: 1px 5px; border-radius: 3px; }
+
+  .matrix { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 10px; }
+  .matrix > * { min-width: 0; }
+  .matrix-cell { border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border); }
+  .matrix-cell .mc-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+  }
+  .matrix-cell .mc-title { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+  .matrix-cell ul { list-style: none; }
+  .matrix-cell ul li {
+    font-size: 11px;
+    color: var(--text-dim);
+    padding-left: 12px;
+    position: relative;
+    line-height: 1.75;
+  }
+  .matrix-cell ul li::before { content: '·'; position: absolute; left: 0; color: var(--text-dim); }
+
+  .callout {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-dim);
+  }
+  .callout strong { color: var(--text); }
+  .callout code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--amber-dim);
+    color: var(--amber);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .callout--red { border-left-color: var(--red); }
+  .callout--green { border-left-color: var(--green); }
+  .callout--slate { border-left-color: var(--slate); }
+
+  .ext-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    transition: box-shadow 0.2s ease;
+  }
+  .ext-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .ext-card .ext-num { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-bottom: 6px; }
+  .ext-card .ext-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .ext-card .ext-desc { font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 10px; }
+  .ext-card .ext-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+  .tag { font-family: var(--font-mono); font-size: 10px; padding: 2px 7px; border-radius: 4px; }
+  .tag-effort-low { background: var(--green-dim); color: var(--green); }
+  .tag-effort-med { background: var(--amber-dim); color: var(--amber); }
+  .tag-effort-high { background: var(--red-dim); color: var(--red); }
+  .tag-impact-high { background: var(--slate-dim); color: var(--slate); }
+  .tag-impact-med { background: var(--teal-dim); color: var(--teal); }
+  .tag-type { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 1160px;
+    margin: 12px auto 4px;
+  }
+  .section-divider__line { flex: 1; height: 1px; background: var(--border-bright); }
+  .section-divider__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 900px) {
+    body { padding: 24px 20px; }
+    .two-col { grid-template-columns: 1fr; }
+    .three-col { grid-template-columns: 1fr; }
+    .inner-grid { grid-template-columns: 1fr; }
+    .matrix { grid-template-columns: 1fr; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header anim" style="--i:0">
+  <div class="eyebrow">Strategic Intelligence Brief · HESK @ УКУ · 2026-03</div>
+  <h1>System Analysis<br>&amp; Extension Roadmap</h1>
+  <p class="subtitle">Codebase audit + management intel synthesis. Foundation for MVP scoping and incremental delivery.</p>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi-card anim-scale" style="--i:1">
+    <div class="kpi-card__value" style="color:var(--amber)">3.7.5</div>
+    <div class="kpi-card__label">HESK Version</div>
+    <div class="kpi-card__sub">Self-hosted · PHP + MySQL</div>
+  </div>
+  <div class="kpi-card anim-scale" style="--i:2">
+    <div class="kpi-card__value" style="color:var(--red)">0</div>
+    <div class="kpi-card__label">API Endpoints</div>
+    <div class="kpi-card__sub">No REST. No webhooks.</div>
+  </div>
+  <div class="kpi-card anim-scale" style="--i:3">
+    <div class="kpi-card__value" style="color:var(--red)">5 min</div>
+    <div class="kpi-card__label">Email Sync Lag</div>
+    <div class="kpi-card__sub">IMAP cron-job interval</div>
+  </div>
+  <div class="kpi-card anim-scale" style="--i:4">
+    <div class="kpi-card__value" style="color:var(--green)">100</div>
+    <div class="kpi-card__label">Custom Fields</div>
+    <div class="kpi-card__sub">custom1–custom100 in schema</div>
+  </div>
+  <div class="kpi-card anim-scale" style="--i:5">
+    <div class="kpi-card__value" style="color:var(--teal)">4+</div>
+    <div class="kpi-card__label">Cloud-Locked Modules</div>
+    <div class="kpi-card__sub">Stats, Escalation, Recurrence, CSAT</div>
+  </div>
+</div>
+
+<div class="diagram">
+
+  <div class="section-divider anim" style="--i:6">
+    <div class="section-divider__line"></div>
+    <div class="section-divider__label">01 — Current System State</div>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="section section--slate anim" style="--i:7">
+      <div class="section-label"><span class="dot"></span>Architecture</div>
+      <h2>What HESK Actually Is</h2>
+      <ul class="node-list">
+        <li>PHP monolith, no framework — full file-level control <span class="tag-green">advantage</span></li>
+        <li>MySQL / MyISAM — <strong>no foreign keys, no transactions</strong> <span class="tag-red">risk</span></li>
+        <li>Session-based auth — no tokens, no stateless API</li>
+        <li>Email integration via IMAP/POP3 + OAuth2 for Gmail/M365 <span class="tag-green">solid</span></li>
+        <li>Inbound email → ticket via cron (5-min lag) <span class="tag-amber">bottleneck</span></li>
+        <li>Zero webhooks, zero event bus, zero async queue</li>
+        <li>Custom CSS/JS injection hooks in admin panel <span class="tag-green">easy wins</span></li>
+        <li>File-based PHP cache for statuses, custom fields, KB</li>
+        <li>HTMLPurifier for input sanitization, TOTP MFA available</li>
+      </ul>
+    </div>
+    <div class="section section--red anim" style="--i:8">
+      <div class="section-label"><span class="dot"></span>Management Intel — Confirmed Pain Points</div>
+      <h2>What's Actually Broken</h2>
+      <ul class="node-list">
+        <li><strong>No Google SSO for users</strong> — #1 ticket loss vector. Wrong email = silent failure. No confirmation received. <span class="tag-red">critical</span></li>
+        <li><strong>No auto-routing from email</strong> — no tags, no category, no owner. Тетяна manually triages everything <span class="tag-red">ops cost</span></li>
+        <li><strong>Form UX is broken</strong> — "half-working," new step added pointing to new HESK instance</li>
+        <li><strong>Orientation gap</strong> — students told to email directly, not use HESK. Inconsistent per faculty</li>
+        <li><strong>Weekend SLA = none</strong> — staff Mon–Fri only, physical support by advance notice only</li>
+        <li><strong>Low awareness</strong> — significant user base doesn't know helpdesk exists</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section section--amber anim" style="--i:9">
+    <div class="section-label"><span class="dot"></span>Operational Constraints</div>
+    <div class="three-col">
+      <div class="inner-card">
+        <div class="title">Update Risk</div>
+        <div class="desc">HESK updates clobber custom code. Every file modification must be documented for post-update restoration. Minimal footprint changes preferred — "child theme" approach.</div>
+      </div>
+      <div class="inner-card">
+        <div class="title">Security Gate</div>
+        <div class="desc">Cybersec specialist + sysadmin review before prod deploy. No formal process but gate is real. Sandbox-first, always. Ukrainian translation may "break" stock GitHub version — account for it locally.</div>
+      </div>
+      <div class="inner-card">
+        <div class="title">Budget &amp; Authority</div>
+        <div class="desc">Budget approved for paid HESK modules. Full tool replacement is on the table if justified with concrete advantages. Incremental delivery preferred over documentation-only output.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider anim" style="--i:10">
+    <div class="section-divider__line"></div>
+    <div class="section-divider__label">02 — Full Feature Inventory</div>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="section section--green anim" style="--i:11">
+      <div class="section-label"><span class="dot"></span>Ticket Lifecycle</div>
+      <ul class="node-list">
+        <li>Submit via web form, email (IMAP/POP3/pipe), or admin-created</li>
+        <li>Status machine: New → Customer Replied ↔ Staff Replied → Resolved + custom</li>
+        <li>Priority: Low/Medium/High/Critical + custom priorities</li>
+        <li>Auto-assign round-robin by category</li>
+        <li>Ticket merging, linking, locking, archiving</li>
+        <li>Due dates + overdue email alerts (cron)</li>
+        <li>Time tracking per ticket</li>
+        <li>Collaborators (multi-staff per ticket)</li>
+        <li>Ticket templates + canned replies + reply drafts</li>
+        <li>100 custom fields (text, textarea, radio, select, checkbox, date, email, hidden)</li>
+      </ul>
+    </div>
+    <div class="section section--teal anim" style="--i:12">
+      <div class="section-label"><span class="dot"></span>Staff, Admin &amp; Security</div>
+      <ul class="node-list">
+        <li>RBAC: permission groups with feature-level + category-level matrix</li>
+        <li>Admin vs. non-admin + category-scoped ticket visibility</li>
+        <li>Staff performance: reply count, positive/negative ratings</li>
+        <li>Online presence indicator, private staff-to-staff messaging</li>
+        <li>Export tickets (CSV/XML), import customers</li>
+        <li>Service messages (banner notifications), maintenance mode</li>
+        <li>MFA (TOTP) for staff + customers</li>
+        <li>Banned email/IP lists, flood control, reCAPTCHA, CAPTCHA</li>
+        <li>GDPR: ticket anonymization, privacy functions</li>
+        <li>Knowledgebase: hierarchical, fulltext, public/private/draft, ratings</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="section section--plum anim" style="--i:13">
+      <div class="section-label"><span class="dot"></span>Cloud-Locked Module Stubs (in free codebase)</div>
+      <ul class="node-list">
+        <li><code>module_statistics</code> — analytics dashboard <span class="tag-red">cloud only</span></li>
+        <li><code>module_satisfaction</code> — CSAT surveys <span class="tag-red">cloud only</span></li>
+        <li><code>module_escalate</code> — escalation rules <span class="tag-red">cloud only</span></li>
+        <li><code>module_recurring_tickets</code> — scheduled recurring tickets <span class="tag-red">cloud only</span></li>
+        <li>Customer accounts with public portal login — <strong>code exists, unreleased</strong> <span class="tag-amber">watch</span></li>
+        <li>All four stubs present in free UI — non-functional, point to cloud upgrade</li>
+      </ul>
+    </div>
+    <div class="section section--amber anim" style="--i:14">
+      <div class="section-label"><span class="dot"></span>Exploit Surface for Extensions</div>
+      <ul class="node-list">
+        <li>Custom CSS/JS injection — injects into every admin page <span class="tag-green">easy widget delivery</span></li>
+        <li>Cron directory — add scripts alongside <code>email_overdue_tickets.php</code></li>
+        <li>IMAP fetch loop — intercept before ticket creation, classify, modify</li>
+        <li>AJAX endpoints in <code>admin/ajax/</code> — minimal, can extend</li>
+        <li>Direct DB read (read-only replica or same DB) for analytics</li>
+        <li>Email piping — external service writes formatted email to mailbox</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-divider anim" style="--i:15">
+    <div class="section-divider__line"></div>
+    <div class="section-divider__label">03 — Priority Matrix</div>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="section section--hero anim" style="--i:16">
+    <div class="section-label"><span class="dot" style="background:var(--text-dim)"></span>Impact vs. Effort — Decision Framework</div>
+    <div class="matrix">
+      <div class="matrix-cell" style="background:rgba(22,101,52,0.06); border-color:rgba(22,101,52,0.2)">
+        <div class="mc-label" style="color:var(--green)">High Impact · Low Effort — Do First</div>
+        <div class="mc-title">Quick Wins</div>
+        <ul>
+          <li>Enable customer accounts (settings toggle, already coded)</li>
+          <li>Keyword-based auto-category in IMAP fetch loop (~50 lines PHP)</li>
+          <li>Escalation cron — open ticket alerts to owner + manager</li>
+          <li>KB article: "How to submit a ticket"</li>
+          <li>Service message banner on HESK homepage</li>
+          <li>Fix form UX — remove broken step, simplify flow</li>
+          <li>Standardize orientation script across faculties</li>
+        </ul>
+      </div>
+      <div class="matrix-cell" style="background:rgba(30,58,95,0.06); border-color:rgba(30,58,95,0.2)">
+        <div class="mc-label" style="color:var(--slate)">High Impact · Medium Effort — Core MVPs</div>
+        <div class="mc-title">Strategic Bets</div>
+        <ul>
+          <li>Google OAuth SSO on submit form (pre-fill email + name)</li>
+          <li>Structured intake forms per category (IT, rooms, admin, etc.)</li>
+          <li>AI classifier sidecar — reads mailbox, tags email, resubmits</li>
+          <li>DB-read analytics dashboard (Metabase on same DB, read-only)</li>
+          <li>AI reply suggestions widget injected into admin reply form</li>
+        </ul>
+      </div>
+      <div class="matrix-cell" style="background:rgba(180,83,9,0.06); border-color:rgba(180,83,9,0.2)">
+        <div class="mc-label" style="color:var(--amber)">Low Impact · Low Effort — Fill In</div>
+        <div class="mc-title">Nice to Have</div>
+        <ul>
+          <li>Ukrainian translation audit + consistency pass</li>
+          <li>Email footer campaign (HESK link in IT signatures)</li>
+          <li>HESK embed widget on intranet/portal</li>
+          <li>Canned replies for top 10 issue types</li>
+          <li>Custom statuses matching УКУ workflow stages</li>
+        </ul>
+      </div>
+      <div class="matrix-cell" style="background:rgba(185,28,28,0.05); border-color:rgba(185,28,28,0.15)">
+        <div class="mc-label" style="color:var(--red)">High Effort · Uncertain Impact — Defer</div>
+        <div class="mc-title">Evaluate Later</div>
+        <ul>
+          <li>Full HESK replacement (Zammad, Freshdesk, Jira SD)</li>
+          <li>Custom REST API wrapper over HESK DB</li>
+          <li>Telegram bot intake channel</li>
+          <li>SLA enforcement engine from scratch</li>
+          <li>Multi-tenant support</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider anim" style="--i:17">
+    <div class="section-divider__line"></div>
+    <div class="section-divider__label">04 — Extension Concepts</div>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="section section--slate anim" style="--i:18">
+    <div class="section-label"><span class="dot"></span>Cluster A — Identity &amp; Access (Root Cause Fix)</div>
+    <div class="three-col">
+      <div class="ext-card">
+        <div class="ext-num">A-1</div>
+        <div class="ext-title">Google SSO on Submit Form</div>
+        <div class="ext-desc">Patch <code>submit_ticket.php</code> to support OAuth2 PKCE flow via Google. On success, pre-fill verified email + name. No account required — just identity verification. Kills the #1 ticket loss vector cold.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-med">effort: medium</span>
+          <span class="tag tag-impact-high">impact: critical</span>
+          <span class="tag tag-type">code mod</span>
+        </div>
+      </div>
+      <div class="ext-card">
+        <div class="ext-num">A-2</div>
+        <div class="ext-title">Customer Accounts Enable</div>
+        <div class="ext-desc">Customer account tables + code already in HESK — management confirmed it's built but unreleased publicly. Enable via settings, test in sandbox. Users get a ticket portal without re-entering email every time.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-low">effort: low</span>
+          <span class="tag tag-impact-high">impact: high</span>
+          <span class="tag tag-type">config</span>
+        </div>
+      </div>
+      <div class="ext-card">
+        <div class="ext-num">A-3</div>
+        <div class="ext-title">Email Verification Before Ticket Creation</div>
+        <div class="ext-desc">On web form submit, send one-time verification link before creating ticket. Only creates after email confirmed. Eliminates "never got my ticket" from typo emails without requiring full OAuth2.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-low">effort: low</span>
+          <span class="tag tag-impact-high">impact: high</span>
+          <span class="tag tag-type">code mod</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section section--amber anim" style="--i:19">
+    <div class="section-label"><span class="dot"></span>Cluster B — Smart Routing (Ops Efficiency)</div>
+    <div class="three-col">
+      <div class="ext-card">
+        <div class="ext-num">B-1</div>
+        <div class="ext-title">Keyword-Based Auto-Category</div>
+        <div class="ext-desc">Post-process inbound emails in the cron/IMAP fetch loop. Scan subject + body for keyword patterns mapped to category ID + owner. Pure PHP, zero external deps, zero latency added. 80% of cases follow predictable patterns.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-low">effort: low</span>
+          <span class="tag tag-impact-high">impact: high</span>
+          <span class="tag tag-type">cron mod</span>
+        </div>
+      </div>
+      <div class="ext-card">
+        <div class="ext-num">B-2</div>
+        <div class="ext-title">AI Email Classifier Sidecar</div>
+        <div class="ext-desc">Separate Python/Node service reads HESK mailbox via IMAP, classifies email (LLM call), then forwards a tagged email back to HESK mailbox. HESK ingests it with category pre-set. Zero HESK code modification required.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-med">effort: medium</span>
+          <span class="tag tag-impact-high">impact: high</span>
+          <span class="tag tag-type">external service</span>
+        </div>
+      </div>
+      <div class="ext-card">
+        <div class="ext-num">B-3</div>
+        <div class="ext-title">Structured Intake Forms per Category</div>
+        <div class="ext-desc">Replace generic form with category-specific flows (IT issue, room booking, admin request, library). Each maps to custom fields, pre-sets category + priority. Dramatically reduces Тетяна's manual triage burden.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-med">effort: medium</span>
+          <span class="tag tag-impact-high">impact: high</span>
+          <span class="tag tag-type">UX + code</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section section--teal anim" style="--i:20">
+    <div class="section-label"><span class="dot"></span>Cluster C — Awareness &amp; Adoption</div>
+    <div class="three-col">
+      <div class="ext-card">
+        <div class="ext-num">C-1</div>
+        <div class="ext-title">Orientation Script Standardization</div>
+        <div class="ext-desc">Non-technical but highest leverage. Standardize what every faculty tells students at orientation — one authoritative slide about HESK with QR code to submit form. Eliminates the "we weren't told" gap that Ірина surfaced.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-low">effort: low</span>
+          <span class="tag tag-impact-high">impact: high</span>
+          <span class="tag tag-type">ops / process</span>
+        </div>
+      </div>
+      <div class="ext-card">
+        <div class="ext-num">C-2</div>
+        <div class="ext-title">Email Footer Campaign</div>
+        <div class="ext-desc">Add HESK submit link to IT department email signatures. When users reply to any IT email, they see "For future requests: [helpdesk link]". Persistent low-cost exposure — no campaigns needed.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-low">effort: low</span>
+          <span class="tag tag-impact-med">impact: medium</span>
+          <span class="tag tag-type">ops</span>
+        </div>
+      </div>
+      <div class="ext-card">
+        <div class="ext-num">C-3</div>
+        <div class="ext-title">HESK Embed Widget on Intranet</div>
+        <div class="ext-desc">Floating "Need help?" button on the УКУ intranet/portal that opens HESK submit form inline or in new tab. Removes the "I don't know the URL" barrier. Inject via existing admin custom JS hook — no intranet code access needed.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-low">effort: low</span>
+          <span class="tag tag-impact-med">impact: medium</span>
+          <span class="tag tag-type">frontend</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section section--plum anim" style="--i:21">
+    <div class="section-label"><span class="dot"></span>Cluster D — Intelligence Layer (Future State)</div>
+    <div class="three-col">
+      <div class="ext-card">
+        <div class="ext-num">D-1</div>
+        <div class="ext-title">DB-Read Analytics Dashboard</div>
+        <div class="ext-desc">Read-only MySQL connection from Metabase or Grafana. Bypasses the cloud statistics module paywall entirely. Volume by category, resolution time, staff load, busiest hours. Zero HESK code modification — just read the DB.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-med">effort: medium</span>
+          <span class="tag tag-impact-high">impact: high</span>
+          <span class="tag tag-type">external tool</span>
+        </div>
+      </div>
+      <div class="ext-card">
+        <div class="ext-num">D-2</div>
+        <div class="ext-title">AI Reply Suggestions Widget</div>
+        <div class="ext-desc">Inject JS widget into admin reply form (via custom JS hook). Sends ticket context to external LLM API. Returns 2–3 draft reply suggestions. Staff picks or edits. Reduces reply time on common issues without any PHP modification.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-med">effort: medium</span>
+          <span class="tag tag-impact-med">impact: medium</span>
+          <span class="tag tag-type">JS injection</span>
+        </div>
+      </div>
+      <div class="ext-card">
+        <div class="ext-num">D-3</div>
+        <div class="ext-title">Escalation Cron</div>
+        <div class="ext-desc">~50 lines of PHP cron script: find tickets open > N hours without staff reply, auto-notify owner + manager by email. Replicates the cloud-locked escalation module. Can also trigger Telegram or Slack webhook if needed.</div>
+        <div class="ext-tags">
+          <span class="tag tag-effort-low">effort: low</span>
+          <span class="tag tag-impact-high">impact: high</span>
+          <span class="tag tag-type">cron + PHP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider anim" style="--i:22">
+    <div class="section-divider__line"></div>
+    <div class="section-divider__label">05 — Architecture Risks</div>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="three-col">
+    <div class="callout callout--red anim" style="--i:23">
+      <strong>MyISAM — acceptable but fragile.</strong> No foreign key enforcement, no transactions. Data integrity fully in PHP code. For simple CRUD extensions this is fine. For anything transactional (multi-step workflows, atomic state changes) — risk of silent corruption. Know when you're in that zone.
+    </div>
+    <div class="callout anim" style="--i:24">
+      <strong>EAV antipattern in custom fields.</strong> <code>custom1</code>–<code>custom100</code> are flat columns. Semantic field additions require schema migrations. Querying on custom field values at scale is ugly. Don't build anything requiring heavy custom field analytics.
+    </div>
+    <div class="callout callout--slate anim" style="--i:25">
+      <strong>No plugin architecture — every touch is a fork.</strong> No hooks, no observers. Extensions = direct file modification or parallel processes reading DB. Document every touched file: filename, lines changed, version, date, purpose. Updates will overwrite without this.
+    </div>
+  </div>
+
+  <div class="section-divider anim" style="--i:26">
+    <div class="section-divider__line"></div>
+    <div class="section-divider__label">06 — Delivery Sequence</div>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="section section--hero anim" style="--i:27">
+    <div class="section-label"><span class="dot" style="background:var(--text-dim)"></span>Incremental Delivery — Sandbox First, Security Review Before Prod</div>
+    <div class="inner-grid">
+      <div class="inner-card">
+        <div class="title" style="color:var(--green)">Sprint 1 — Zero-Code Wins (Week 1–2)</div>
+        <div class="desc">Enable customer accounts (A-2). Write KB article. Add service banner. Standardize orientation script (C-1). Audit broken form — document exactly what's broken and why. Deploy D-3 escalation cron.</div>
+      </div>
+      <div class="inner-card">
+        <div class="title" style="color:var(--amber)">Sprint 2 — Routing Triage (Week 3–4)</div>
+        <div class="desc">Implement keyword auto-category in IMAP cron (B-1). Sandbox test. Security review. Prod deploy. Measure Тетяна's manual routing time before/after — this is your first hard metric.</div>
+      </div>
+      <div class="inner-card">
+        <div class="title" style="color:var(--slate)">Sprint 3 — Identity Fix (Week 5–6)</div>
+        <div class="desc">Email verification hardening (A-3) — simplest auth improvement, no OAuth complexity. Evaluate Google SSO feasibility (A-1) based on УКУ's Google Workspace setup and security review feedback from Sprint 2.</div>
+      </div>
+      <div class="inner-card">
+        <div class="title" style="color:var(--plum)">Sprint 4 — Intelligence (Week 7–8)</div>
+        <div class="desc">Analytics via Metabase read-only (D-1). AI classifier sidecar POC (B-2). AI reply suggestions widget (D-2). Structured intake forms (B-3). Re-evaluate HESK replacement decision using real usage metrics.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout--slate anim" style="--i:28">
+    <strong>On replacing HESK:</strong> Володимир is open but requires a detailed case with concrete advantages enumerated. The strongest argument comes <em>after</em> Sprint 1–2 data — if routing is still a disaster with keyword rules and customer accounts enabled, that's your evidence. Don't propose replacement before you have baseline metrics. Alternatives if needed: <strong>Zammad</strong> (open source, real REST API, OAuth2, good RBAC — closest drop-in), <strong>Freshdesk</strong> (hosted, Google SSO, routing rules native, costs money), <strong>Jira Service Management</strong> (if УКУ has Atlassian elsewhere).
+  </div>
+
+</div>
+</body>
+</html>
