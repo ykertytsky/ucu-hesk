@@ -9048,6 +9048,7 @@ so in this case we rather to it with a scale transform, so it doesn't affect dro
 .main__content.settings .settings__form .checkbox-group {
     display: -ms-flexbox;
     display: flex;
+    flex-wrap: wrap;
     margin-bottom: 16px;
     -ms-flex-align: start;
     align-items: flex-start
@@ -9083,6 +9084,38 @@ so in this case we rather to it with a scale transform, so it doesn't affect dro
 
 .main__content.settings .settings__form .checkbox-group .checkbox-custom label {
     white-space: nowrap
+}
+
+/* AI module: stack long behavior labels cleanly instead of overflowing */
+.main__content.settings.module_ai .settings__form .checkbox-group.ai-behavior .checkbox-list {
+    width: min(100%, 720px);
+}
+
+.main__content.settings.module_ai .settings__form .checkbox-group.ai-behavior .checkbox-custom {
+    min-width: 0;
+    max-width: 100%;
+    margin-top: 0;
+}
+
+.main__content.settings.module_ai .settings__form .checkbox-group.ai-behavior .checkbox-custom label {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+.main__content.settings.module_ai .settings__form .ai-description-list .form-group {
+    align-items: flex-start;
+}
+
+.main__content.settings.module_ai .settings__form .ai-description-list .form-group label {
+    padding-top: 10px;
+}
+
+.main__content.settings.module_ai .settings__form .ai-description-list textarea.form-control {
+    width: min(100%, 720px);
+    min-height: 88px;
+    resize: vertical;
 }
 
 .main__content.settings .settings__form .checkbox-group .switch-checkbox {

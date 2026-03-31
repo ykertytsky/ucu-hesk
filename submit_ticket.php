@@ -29,6 +29,7 @@ hesk_check_kb_only();
 hesk_load_database_functions();
 require(HESK_PATH . 'inc/email_functions.inc.php');
 require(HESK_PATH . 'inc/posting_functions.inc.php');
+require(HESK_PATH . 'inc/ai_assignment.inc.php');
 
 // We only allow POST requests to this file
 if ( $_SERVER['REQUEST_METHOD'] != 'POST' )
@@ -233,7 +234,7 @@ if ($customer) {
 }
 
 $tmpvar['followers'] = $hesk_settings['multi_eml'] ? hesk_validateFollowers(hesk_POST('follower_email')) : [];
-$tmpvar['category'] = intval( hesk_POST('category') ) or $hesk_error_buffer['category']=$hesklang['sel_app_cat'];
+$tmpvar['category'] = intval( hesk_POST('category') );
 
 // Verify followers, remove duplicates
 if ($hesk_settings['multi_eml']) {
@@ -243,6 +244,13 @@ if ($hesk_settings['multi_eml']) {
     }
     $tmpvar['followers'] = array_values($tmpvar['followers']);
 }
+
+// Optionally auto-assign category/priority from ticket text via OpenAI
+hesk_aiAutoAssignTicketFields($tmpvar, array(
+    'subject' => hesk_POST('subject'),
+    'message' => hesk_POST('message'),
+    'category_type' => 0,
+));
 
 // Do we have a default due date?
 $default_due_date_info = hesk_getCategoryDueDateInfo($tmpvar['category']);
@@ -310,6 +318,11 @@ else
 }
 
 // Is category a valid choice?
+if (!$tmpvar['category'])
+{
+    $hesk_error_buffer['category'] = $hesklang['sel_app_cat'];
+}
+
 if ($tmpvar['category'])
 {
 	hesk_verifyCategory();

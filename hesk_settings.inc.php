@@ -75,6 +75,24 @@ $hesk_settings['cat_show_select']=15;
 $hesk_settings['staff_ticket_formatting']=0;
 $hesk_settings['staff_nicknames']=0;
 
+// --> AI ticket auto-assignment
+$hesk_settings['ai_auto_assign_enabled']=0;
+$hesk_settings['ai_auto_assign_api_key']='';
+$hesk_settings['ai_auto_assign_model']='gpt-4o-mini';
+$hesk_settings['ai_auto_assign_timeout']=10;
+$hesk_settings['ai_auto_assign_min_confidence']=0.60;
+$hesk_settings['ai_auto_assign_owner_enabled']=0;
+$hesk_settings['ai_auto_assign_owner_min_confidence']=0.85;
+$hesk_settings['ai_auto_assign_override_category']=1;
+$hesk_settings['ai_auto_assign_override_priority']=1;
+$hesk_settings['ai_auto_assign_override_owner']=0;
+$hesk_settings['ai_auto_assign_include_email_piping']=0;
+$hesk_settings['ai_auto_assign_debug']=0;
+$hesk_settings['ai_auto_assign_log_enabled']=0;
+$hesk_settings['ai_auto_assign_log_payload']=0;
+$hesk_settings['ai_auto_assign_category_descriptions']='';
+$hesk_settings['ai_auto_assign_user_descriptions']='';
+
 // --> Barcode
 $hesk_settings['barcode']=array(
 'print' => 0,
