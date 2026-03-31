@@ -21,6 +21,7 @@ require(HESK_PATH . 'inc/admin_functions.inc.php');
 hesk_load_database_functions();
 require(HESK_PATH . 'inc/email_functions.inc.php');
 require(HESK_PATH . 'inc/posting_functions.inc.php');
+require(HESK_PATH . 'inc/ai_assignment.inc.php');
 
 hesk_session_start();
 hesk_dbConnect();
@@ -96,7 +97,7 @@ foreach ($tmpvar['follower_ids'] as $follower_id) {
 }
 $tmpvar['follower_ids'] = $actual_followers;
 
-$tmpvar['category'] = intval( hesk_POST('category') ) or $hesk_error_buffer['category']=$hesklang['sel_app_cat'];
+$tmpvar['category'] = intval( hesk_POST('category') );
 $tmpvar['priority'] = hesk_POST('priority');
 $tmpvar['priority'] = strlen($tmpvar['priority']) ? intval($tmpvar['priority']) : -1;
 
@@ -121,7 +122,25 @@ if ($hesk_settings['staff_ticket_formatting'] == 2 && ! class_exists('DOMDocumen
     $hesk_error_buffer['message'] = $hesklang['require_xml'];
 }
 
+$allowed_categories = array();
+if (!hesk_checkPermission('can_submit_any_cat', 0) && isset($hesk_settings['categories']) && is_array($hesk_settings['categories'])) {
+    $allowed_categories = array_map('intval', array_keys($hesk_settings['categories']));
+}
+
+// Optionally auto-assign category/priority from ticket text via OpenAI
+hesk_aiAutoAssignTicketFields($tmpvar, array(
+    'allowed_category_ids' => $allowed_categories,
+    'subject' => $tmpvar['subject'],
+    'message' => $tmpvar['message'],
+    'category_type' => -1,
+));
+
 // Is category a valid choice?
+if (!$tmpvar['category'])
+{
+    $hesk_error_buffer['category'] = $hesklang['sel_app_cat'];
+}
+
 if ($tmpvar['category'])
 {
     if ( ! hesk_checkPermission('can_submit_any_cat', 0) && ! hesk_okCategory($tmpvar['category'], 0) )

@@ -18,6 +18,7 @@ if (!defined('IN_SCRIPT')) {die('Invalid attempt');}
 hesk_load_database_functions();
 require(HESK_PATH . 'inc/email_functions.inc.php');
 require(HESK_PATH . 'inc/posting_functions.inc.php');
+require(HESK_PATH . 'inc/ai_assignment.inc.php');
 require(HESK_PATH . 'inc/mail/rfc822_addresses.php');
 require(HESK_PATH . 'inc/mail/mime_parser.php');
 require(HESK_PATH . 'inc/mail/email_parser.php');
@@ -459,9 +460,30 @@ function hesk_email2ticket($results, $protocol = 0, $set_category = 1, $set_prio
 	// Not a reply, but a new ticket. Add it to the database
 	$tmpvar['category'] 	= $set_category;
 	$tmpvar['priority'] 	= $set_priority < 0 ? hesk_getCategoryPriority($tmpvar['category']) : $set_priority;
+    $tmpvar['owner']       = 0;
+
+    $ai_owner_result = array('applied' => false);
+    if (!empty($hesk_settings['ai_auto_assign_include_email_piping'])) {
+        hesk_aiAutoAssignTicketFields($tmpvar, array(
+            'subject' => $tmpvar['subject'],
+            'message' => $tmpvar['message'],
+            'category_type' => -1,
+            'allow_category_override' => true,
+            'allow_priority_override' => true,
+        ));
+
+        if (!empty($hesk_settings['ai_auto_assign_owner_enabled'])) {
+            $ai_owner_result = hesk_aiAutoAssignTicketOwner($tmpvar, array(
+                'subject' => $tmpvar['subject'],
+                'message' => $tmpvar['message'],
+                'category_id' => $tmpvar['category'],
+                'allow_owner_override' => true,
+            ));
+        }
+    }
 
 	// Auto assign tickets if aplicable
-	$tmpvar['owner']   = 0;
+	$autoassign_owner = array();
 
     // What protocol did we use to submit the ticket?
     switch ($protocol)
@@ -484,7 +506,14 @@ function hesk_email2ticket($results, $protocol = 0, $set_category = 1, $set_prio
             $tmpvar['openedby'] = -1;
     }
 
-	$autoassign_owner = hesk_autoAssignTicket($tmpvar['category']);
+	if (!empty($ai_owner_result['applied']) && !empty($ai_owner_result['owner']) && is_array($ai_owner_result['owner']))
+	{
+		$autoassign_owner = $ai_owner_result['owner'];
+	}
+	else
+	{
+		$autoassign_owner = hesk_autoAssignTicket($tmpvar['category']);
+	}
 
 	#print_r($autoassign_owner);
 

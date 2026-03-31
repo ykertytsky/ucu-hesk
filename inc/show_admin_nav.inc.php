@@ -362,7 +362,7 @@ $calling_script = basename($_SERVER['PHP_SELF'], '.php');
                 // Modules
                 if (hesk_checkPermission('can_run_reports',0) ||
                     hesk_checkPermission('can_man_settings',0)) {
-                    $pages = array('module_statistics', 'module_escalate', 'module_satisfaction', 'module_satisfaction_optout', 'module_recurring_tickets');
+                    $pages = array('module_statistics', 'module_ai', 'module_escalate', 'module_satisfaction', 'module_satisfaction_optout', 'module_recurring_tickets');
                     $open_menu = in_array($calling_script, $pages) ? 'current submenu-is-opened' : '';
                 ?>
                 <li class="listitem submenu <?php echo $open_menu; ?>">
@@ -390,6 +390,11 @@ $calling_script = basename($_SERVER['PHP_SELF'], '.php');
 
                             if (hesk_checkPermission('can_man_settings',0)) {
                                 ?>
+                                <li class="submenu__listitem <?php if ($calling_script === 'module_ai') { ?>current<?php } ?>">
+                                    <a href="module_ai.php">
+                                        <?php echo $hesklang['ai']['tab']; ?>
+                                    </a>
+                                </li>
                                 <li class="submenu__listitem <?php if ($calling_script === 'module_escalate') { ?>current<?php } ?>">
                                     <a href="module_escalate.php">
                                         <?php echo $hesklang['escalate']['tab']; ?>

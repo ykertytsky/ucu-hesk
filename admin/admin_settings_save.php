@@ -42,14 +42,15 @@ hesk_checkPermission('can_man_settings');
 hesk_token_check('POST');
 
 $section = hesk_input(hesk_POST('section'));
-if (!in_array($section, array('GENERAL', 'HELP_DESK', 'KNOWLEDGEBASE', 'EMAIL', 'TICKET_LIST', 'MISC', 'THEME'))) {
+$return_location = $section === 'AI' ? 'module_ai.php' : 'admin_settings_' . strtolower($section) . '.php';
+if (!in_array($section, array('GENERAL', 'HELP_DESK', 'AI', 'KNOWLEDGEBASE', 'EMAIL', 'TICKET_LIST', 'MISC', 'THEME'))) {
     hesk_process_messages($hesklang['err_no_settings_section'], 'admin_settings_general.php');
 }
 
 // Demo mode
 if ( defined('HESK_DEMO') )
 {
-	hesk_process_messages($hesklang['sdemo'], 'admin_settings_' . strtolower($section) . '.php', 'NOTICE');
+	hesk_process_messages($hesklang['sdemo'], $return_location, 'NOTICE');
 }
 
 $set=array();
@@ -378,6 +379,37 @@ if ($section === 'GENERAL') {
 		$set['attachments']['allowed_types']=array('.gif','.jpg','.png','.zip','.rar','.csv','.doc','.docx','.xls','.xlsx','.txt','.pdf');
         $set['attachments']['attachment_in_email_type'] = 0;//Default attachment for email settings
 	}
+} elseif ($section === 'AI') {
+    // AI ticket auto-assignment
+    $set['ai_auto_assign_enabled'] = empty($_POST['s_ai_auto_assign_enabled']) ? 0 : 1;
+    $set['ai_auto_assign_model'] = hesk_input( hesk_POST('s_ai_auto_assign_model', isset($hesk_settings['ai_auto_assign_model']) ? $hesk_settings['ai_auto_assign_model'] : 'gpt-4o-mini') );
+    if ($set['ai_auto_assign_model'] == '') {
+        $set['ai_auto_assign_model'] = 'gpt-4o-mini';
+    }
+    $set['ai_auto_assign_timeout'] = hesk_checkMinMax(intval(hesk_POST('s_ai_auto_assign_timeout')), 5, 60, 10);
+    $set['ai_auto_assign_min_confidence'] = floatval(hesk_POST('s_ai_auto_assign_min_confidence'));
+    if ($set['ai_auto_assign_min_confidence'] < 0) {
+        $set['ai_auto_assign_min_confidence'] = 0;
+    } elseif ($set['ai_auto_assign_min_confidence'] > 1) {
+        $set['ai_auto_assign_min_confidence'] = 1;
+    }
+    $set['ai_auto_assign_api_key'] = hesk_input( hesk_POST('s_ai_auto_assign_api_key', isset($hesk_settings['ai_auto_assign_api_key']) ? $hesk_settings['ai_auto_assign_api_key'] : '') );
+    $set['ai_auto_assign_owner_enabled'] = empty($_POST['s_ai_auto_assign_owner_enabled']) ? 0 : 1;
+    $set['ai_auto_assign_owner_min_confidence'] = floatval(hesk_POST('s_ai_auto_assign_owner_min_confidence'));
+    if ($set['ai_auto_assign_owner_min_confidence'] < 0) {
+        $set['ai_auto_assign_owner_min_confidence'] = 0;
+    } elseif ($set['ai_auto_assign_owner_min_confidence'] > 1) {
+        $set['ai_auto_assign_owner_min_confidence'] = 1;
+    }
+    $set['ai_auto_assign_override_category'] = empty($_POST['s_ai_auto_assign_override_category']) ? 0 : 1;
+    $set['ai_auto_assign_override_priority'] = empty($_POST['s_ai_auto_assign_override_priority']) ? 0 : 1;
+    $set['ai_auto_assign_override_owner'] = empty($_POST['s_ai_auto_assign_override_owner']) ? 0 : 1;
+    $set['ai_auto_assign_include_email_piping'] = empty($_POST['s_ai_auto_assign_include_email_piping']) ? 0 : 1;
+    $set['ai_auto_assign_debug'] = empty($_POST['s_ai_auto_assign_debug']) ? 0 : 1;
+    $set['ai_auto_assign_log_enabled'] = empty($_POST['s_ai_auto_assign_log_enabled']) ? 0 : 1;
+    $set['ai_auto_assign_log_payload'] = empty($_POST['s_ai_auto_assign_log_payload']) ? 0 : 1;
+    $set['ai_auto_assign_category_descriptions'] = hesk_prepareAiDescriptionMapForStorage(hesk_POST_array('s_ai_auto_assign_category_descriptions'));
+    $set['ai_auto_assign_user_descriptions'] = hesk_prepareAiDescriptionMapForStorage(hesk_POST_array('s_ai_auto_assign_user_descriptions'));
 } elseif ($section === 'KNOWLEDGEBASE') {
 	/* --> Knowledgebase settings */
 	$set['kb_enable']			= hesk_checkMinMax( intval( hesk_POST('s_kb_enable') ) , 0, 2, 1);
@@ -834,6 +866,24 @@ $hesk_settings[\'cat_show_select\']=' . hesk_getProperty($set, 'cat_show_select'
 $hesk_settings[\'staff_ticket_formatting\']=' . hesk_getProperty($set, 'staff_ticket_formatting') . ';
 $hesk_settings[\'staff_nicknames\']=' . hesk_getProperty($set, 'staff_nicknames') . ';
 
+// --> AI ticket auto-assignment
+$hesk_settings[\'ai_auto_assign_enabled\']=' . hesk_getProperty($set, 'ai_auto_assign_enabled') . ';
+$hesk_settings[\'ai_auto_assign_api_key\']=\'' . hesk_getProperty($set, 'ai_auto_assign_api_key') . '\';
+$hesk_settings[\'ai_auto_assign_model\']=\'' . hesk_getProperty($set, 'ai_auto_assign_model') . '\';
+$hesk_settings[\'ai_auto_assign_timeout\']=' . hesk_getProperty($set, 'ai_auto_assign_timeout') . ';
+$hesk_settings[\'ai_auto_assign_min_confidence\']=' . number_format(floatval(hesk_getProperty($set, 'ai_auto_assign_min_confidence')), 2, '.', '') . ';
+$hesk_settings[\'ai_auto_assign_owner_enabled\']=' . hesk_getProperty($set, 'ai_auto_assign_owner_enabled') . ';
+$hesk_settings[\'ai_auto_assign_owner_min_confidence\']=' . number_format(floatval(hesk_getProperty($set, 'ai_auto_assign_owner_min_confidence')), 2, '.', '') . ';
+$hesk_settings[\'ai_auto_assign_override_category\']=' . hesk_getProperty($set, 'ai_auto_assign_override_category') . ';
+$hesk_settings[\'ai_auto_assign_override_priority\']=' . hesk_getProperty($set, 'ai_auto_assign_override_priority') . ';
+$hesk_settings[\'ai_auto_assign_override_owner\']=' . hesk_getProperty($set, 'ai_auto_assign_override_owner') . ';
+$hesk_settings[\'ai_auto_assign_include_email_piping\']=' . hesk_getProperty($set, 'ai_auto_assign_include_email_piping') . ';
+$hesk_settings[\'ai_auto_assign_debug\']=' . hesk_getProperty($set, 'ai_auto_assign_debug') . ';
+$hesk_settings[\'ai_auto_assign_log_enabled\']=' . hesk_getProperty($set, 'ai_auto_assign_log_enabled') . ';
+$hesk_settings[\'ai_auto_assign_log_payload\']=' . hesk_getProperty($set, 'ai_auto_assign_log_payload') . ';
+$hesk_settings[\'ai_auto_assign_category_descriptions\']=\'' . hesk_getProperty($set, 'ai_auto_assign_category_descriptions') . '\';
+$hesk_settings[\'ai_auto_assign_user_descriptions\']=\'' . hesk_getProperty($set, 'ai_auto_assign_user_descriptions') . '\';
+
 // --> Barcode
 $hesk_settings[\'barcode\']=array(
 \'print\' => ' . (isset($set['barcode']) ? $set['barcode']['print'] : $hesk_settings['barcode']['print']) . ',
@@ -1073,7 +1123,6 @@ hesk_purge_cache('status');
 hesk_purge_cache('priority');
 
 // Show the settings page and display any notices or success
-$return_location = 'admin_settings_' . strtolower($section) . '.php';
 if ( count($tmp) )
 {
 	$errors = implode('<br /><br />', $tmp);
@@ -1355,6 +1404,38 @@ function hesk_getProperty($set, $property, $returnAsArray = false) {
 	}
 
 	return isset($set[$property]) ? $set[$property] : addslashes($hesk_settings[$property]);
+}
+
+function hesk_prepareAiDescriptionMapForStorage($raw_descriptions)
+{
+    if (!is_array($raw_descriptions)) {
+        return '';
+    }
+
+    $out = array();
+
+    foreach ($raw_descriptions as $category_id => $description) {
+        $category_id = intval($category_id);
+        $description = trim((string) $description);
+
+        if ($category_id < 1 || $description === '') {
+            continue;
+        }
+
+        if (hesk_mb_strlen($description) > 1000) {
+            $description = hesk_mb_substr($description, 0, 1000);
+        }
+
+        $out[(string) $category_id] = $description;
+    }
+
+    if (!count($out)) {
+        return '';
+    }
+
+    ksort($out, SORT_NUMERIC);
+
+    return json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 function hesk_getLanguageForFile($set) {

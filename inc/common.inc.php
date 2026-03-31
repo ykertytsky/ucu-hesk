@@ -789,19 +789,42 @@ function hesk_autoAssignTicket($ticket_category)
 		return false;
 	}
 
-	$autoassign_owner = array();
+	$eligible_users = hesk_getAutoAssignEligibleUsers($ticket_category);
+	if (!count($eligible_users))
+	{
+		return array();
+	}
 
-	/* Get all possible auto-assign staff, order by number of open tickets */
-	$res = hesk_dbQuery("SELECT `t1`.`id`,`t1`.`user`,`t1`.`name`, `t1`.`autoassign`, `t1`.`email`, `t1`.`nickname`, `t1`.`language`, `t1`.`isadmin`, `t1`.`categories`, `t1`.`notify_assigned`, `t1`.`heskprivileges`,
-					    (SELECT COUNT(*) FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` FORCE KEY (`statuses`) WHERE `owner`=`t1`.`id` AND `status` <> '3' ) as `open_tickets`
-						FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."users` AS `t1`
-						WHERE `t1`.`active` = 1
-						ORDER BY `open_tickets` ASC, RAND()");
-	$autoassign_config_res = hesk_dbQuery("SELECT `autoassign_config` FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."categories` WHERE `id` = ".intval($ticket_category));
-	$autoassign_config = hesk_dbFetchAssoc($autoassign_config_res);
-	$parsed_autoassign_config = hesk_parseAutoAssignConfig($autoassign_config['autoassign_config']);
+	$autoassign_owner = reset($eligible_users);
+    $hesk_settings['user_data'][$autoassign_owner['id']] = $autoassign_owner;
 
-    // Fetch categories / features assigned via permission group
+    return $autoassign_owner;
+
+} // END hesk_autoAssignTicket()
+
+function hesk_getAutoAssignEligibleUsers($ticket_category)
+{
+    global $hesk_settings;
+
+    $ticket_category = intval($ticket_category);
+
+    if (!$hesk_settings['autoassign'] || $ticket_category < 1) {
+        return array();
+    }
+
+    $eligible_users = array();
+
+    $res = hesk_dbQuery("SELECT `t1`.`id`,`t1`.`user`,`t1`.`name`, `t1`.`autoassign`, `t1`.`email`, `t1`.`nickname`, `t1`.`language`, `t1`.`isadmin`, `t1`.`categories`, `t1`.`notify_assigned`, `t1`.`heskprivileges`,
+                        (SELECT COUNT(*) FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` FORCE KEY (`statuses`) WHERE `owner`=`t1`.`id` AND `status` <> '3' ) as `open_tickets`
+                        FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."users` AS `t1`
+                        WHERE `t1`.`active` = 1
+                        ORDER BY `open_tickets` ASC, RAND()");
+    $autoassign_config_res = hesk_dbQuery("SELECT `autoassign_config` FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."categories` WHERE `id` = ".$ticket_category);
+    $autoassign_config = hesk_dbFetchAssoc($autoassign_config_res);
+    $parsed_autoassign_config = hesk_parseAutoAssignConfig(isset($autoassign_config['autoassign_config']) ? $autoassign_config['autoassign_config'] : '');
+
+    // Fetch categories / features assigned via permission group once and reuse the same
+    // permission model as classic auto-assignment.
     $permission_groups_rs = hesk_dbQuery("SELECT `member`.`user_id` AS `user_id`, `category`.`category_id` AS `category_feature_value`, 'CATEGORY' AS `category_feature_type` 
         FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."permission_group_members` AS `member`
         INNER JOIN `".hesk_dbEscape($hesk_settings['db_pfix'])."permission_group_categories` AS `category`
@@ -811,13 +834,13 @@ function hesk_autoAssignTicket($ticket_category)
         FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."permission_group_members` AS `member`
         INNER JOIN `".hesk_dbEscape($hesk_settings['db_pfix'])."permission_group_features` AS `feature`
             ON `member`.`group_id` = `feature`.`group_id`");
-    $user_to_pg_features = [];
-    $user_to_pg_categories = [];
+    $user_to_pg_features = array();
+    $user_to_pg_categories = array();
     while ($row = hesk_dbFetchAssoc($permission_groups_rs)) {
         $user_id = intval($row['user_id']);
-        if (!key_exists($user_id, $user_to_pg_categories)) {
-            $user_to_pg_categories[$user_id] = [];
-            $user_to_pg_features[$user_id] = [];
+        if (!array_key_exists($user_id, $user_to_pg_categories)) {
+            $user_to_pg_categories[$user_id] = array();
+            $user_to_pg_features[$user_id] = array();
         }
 
         if ($row['category_feature_type'] === 'CATEGORY') {
@@ -827,59 +850,44 @@ function hesk_autoAssignTicket($ticket_category)
         }
     }
 
-	/* Loop through the rows and return the first appropriate one */
-	while ($myuser = hesk_dbFetchAssoc($res))
-	{
+    while ($myuser = hesk_dbFetchAssoc($res))
+    {
         $int_myuser_id = intval($myuser['id']);
-        if (!key_exists($int_myuser_id, $user_to_pg_features)) {
-            $user_to_pg_features[$int_myuser_id] = [];
-            $user_to_pg_categories[$int_myuser_id] = [];
+        if (!array_key_exists($int_myuser_id, $user_to_pg_features)) {
+            $user_to_pg_features[$int_myuser_id] = array();
+            $user_to_pg_categories[$int_myuser_id] = array();
         }
 
-	    /*
-	    If "On - Select Users": Is the user allowed to be selected for this category?
-	    If "On - All Users": Does the user have autoassign enabled on their user record?
-	    */
         if (($parsed_autoassign_config['operator'] === 'IN' && !in_array($myuser['id'], $parsed_autoassign_config['ids'])) ||
             ($parsed_autoassign_config['operator'] === 'NOT IN' && in_array($myuser['id'], $parsed_autoassign_config['ids'])) ||
             ($parsed_autoassign_config['operator'] === '' && $myuser['autoassign'] === '0')) {
             continue;
         }
 
-		/* Is this an administrator? */
-		if ($myuser['isadmin'])
-		{
-			$autoassign_owner = $myuser;
-            $hesk_settings['user_data'][$myuser['id']] = $myuser;
-			hesk_dbFreeResult($res);
-			break;
-		}
+        if ($myuser['isadmin']) {
+            $eligible_users[] = $myuser;
+            continue;
+        }
 
-		/* Not and administrator, check two things: */
-
-        /* --> can view and reply to tickets */
         $can_view_tickets = strpos($myuser['heskprivileges'], 'can_view_tickets') !== false || in_array('can_view_tickets', $user_to_pg_features[$int_myuser_id]);
         $can_reply_tickets = strpos($myuser['heskprivileges'], 'can_reply_tickets') !== false || in_array('can_reply_tickets', $user_to_pg_features[$int_myuser_id]);
-		if (!$can_view_tickets || !$can_reply_tickets)
-		{
-			continue;
-		}
+        if (!$can_view_tickets || !$can_reply_tickets)
+        {
+            continue;
+        }
 
-        /* --> has access to ticket category */
-		$myuser['categories'] = explode(',',$myuser['categories']);
+        $myuser['categories'] = explode(',', $myuser['categories']);
         $myuser['categories'] = array_merge($myuser['categories'], $user_to_pg_categories[$int_myuser_id]);
-		if (in_array($ticket_category,$myuser['categories']))
-		{
-			$autoassign_owner = $myuser;
-            $hesk_settings['user_data'][$myuser['id']] = $myuser;
-			hesk_dbFreeResult($res);
-			break;
-		}
-	} 
+        if (in_array($ticket_category, $myuser['categories']))
+        {
+            $eligible_users[] = $myuser;
+        }
+    }
 
-    return $autoassign_owner;
+    hesk_dbFreeResult($res);
 
-} // END hesk_autoAssignTicket()
+    return $eligible_users;
+}
 
 
 function hesk_cleanID($field='track', $in=false)
