@@ -15,6 +15,8 @@ global $hesk_settings, $hesklang;
 if (!defined('IN_SCRIPT')) {
     die();
 }
+// UI-only demo mode (used for stakeholder screenshot mockups)
+$uiDemo = isset($_GET['ui_demo']) && $_GET['ui_demo'] === '1';
 define('EXTRA_PAGE_CLASSES','page-create-ticket');
 
 define('ALERTS',1);
@@ -36,13 +38,164 @@ global $BREADCRUMBS;
 $BREADCRUMBS = array(
     array('url' => $hesk_settings['site_url'], 'title' => $hesk_settings['site_title']),
     array('url' => "index.php", 'title' => $hesk_settings['hesk_title']),
-    array('url' => "index.php?a=add", 'title' => $hesklang['submit_ticket']),
+    array('url' => "index.php?a=add", 'title' => $uiDemo ? 'Надіслати звернення' : $hesklang['submit_ticket']),
     array('title' => $categoryName)
 );
 
 /* Print header */
 require_once(TEMPLATE_PATH . 'customer/inc/header.inc.php');
 ?>
+<?php if ($uiDemo): ?>
+<?php
+    $demoCategoryMap = [
+        'it-equipment' => 'IT-обладнання',
+        'event-support' => 'Техпідтримка подій',
+        'printing' => 'Система друку',
+        'wifi' => 'Інтернет з\'єднання / Wi-Fi',
+        'account-login' => 'Обліковий запис/Логування',
+        'software-help' => 'Допомога з програмою',
+        'hosting-sites' => 'Хостинг і сайти',
+        'crm' => 'Система CRM УКУ',
+        'lms-moodle' => 'LMS Moodle',
+        'lms-academy-ocean' => 'LMS Academy Ocean',
+        'other' => 'Інше',
+    ];
+    $demoCatKey = isset($_GET['demo_cat']) ? (string) $_GET['demo_cat'] : 'it-equipment';
+    $demoCategoryTitle = isset($demoCategoryMap[$demoCatKey]) ? $demoCategoryMap[$demoCatKey] : 'IT-обладнання';
+?>
+        <div class="main__content">
+            <div class="contr">
+                <div style="margin-bottom: 20px;">
+                    <?php hesk3_show_messages($serviceMessages); ?>
+                    <?php hesk3_show_messages($messages); ?>
+                </div>
+
+                <h1 class="select__title" style="margin-bottom: 16px;"><?php echo $demoCategoryTitle; ?></h1>
+
+                <div class="article-heading-tip">
+                    <span>Будь ласка, надайте команді більше деталей у формі звернення</span>
+                    <span class="label required"></span>
+                </div>
+
+                <form class="form form-submit-ticket form-submit-ticket--prototype ticket-create" method="post" action="#" aria-label="UI demo form" name="form1" id="form1" enctype="multipart/form-data" onsubmit="return false;">
+                    <div class="form-group">
+                        <label class="label required" for="demo_name">Ім'я та прізвище</label>
+                        <input
+                            type="text"
+                            id="demo_name"
+                            name="demo_name"
+                            class="form-control"
+                            maxlength="50"
+                            required
+                            placeholder="Ім'я Прізвище"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label required" for="demo_email">Email</label>
+                        <input
+                            type="email"
+                            id="demo_email"
+                            name="demo_email"
+                            class="form-control"
+                            maxlength="1000"
+                            required
+                            placeholder="user@ucu.edu.ua"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label" for="demo_phone">Номер телефону</label>
+                        <input
+                            type="text"
+                            id="demo_phone"
+                            name="demo_phone"
+                            class="form-control"
+                            maxlength="1000"
+                            placeholder="+3801234567890"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label required" for="demo_link">Покликання</label>
+                        <input
+                            type="text"
+                            id="demo_link"
+                            name="demo_link"
+                            class="form-control"
+                            maxlength="1000"
+                            required
+                            placeholder="https://ucu.edu.ua/page"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label" for="demo_center">Локація</label>
+                        <select id="demo_center" name="demo_center" class="form-control">
+                            <option value="" selected disabled>Оберіть локацію</option>
+                            <option value="sventsitskoho-17">вул. Іл.Свєнціцького, 17</option>
+                            <option value="jp2-35a">пр. Івана-Павла ІІ, 35а</option>
+                            <option value="academic-building">Академічний корпус (БФС)</option>
+                            <option value="sheptytsky-center">Центр Шептицького</option>
+                            <option value="kolegium">Колегіум (1, 2)</option>
+                            <option value="st-sofia">Храм Святої Софії-Премудрості Божої</option>
+                            <option value="tax-admin">Податкова адміністрація</option>
+                            <option value="med-clinic">Медична клініка УКУ</option>
+                            <option value="other">Інше (вказати в тексті повідомлення)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label" for="demo_room">Кімната</label>
+                        <input
+                            type="text"
+                            id="demo_room"
+                            name="demo_room"
+                            class="form-control"
+                            maxlength="1000"
+                            placeholder="Кімната / кабінет"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label" for="demo_theme">Тема</label>
+                        <input
+                            type="text"
+                            id="demo_theme"
+                            name="demo_theme"
+                            class="form-control"
+                            maxlength="1000"
+                            placeholder="Коротка тема звернення"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label required" for="demo_message">Повідомлення</label>
+                        <textarea
+                            id="demo_message"
+                            name="demo_message"
+                            class="form-control"
+                            rows="8"
+                            cols="60"
+                            required
+                            placeholder="Опишіть проблему детально."
+                        ></textarea>
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="button" class="btn btn-full" ripple="ripple">Надіслати</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+<?php
+/* Print Footer */
+require_once(TEMPLATE_PATH . 'customer/inc/footer.inc.php');
+?>
+    </body>
+</html>
+<?php return; endif; ?>
+
         <div class="main__content">
             <div class="contr">
                 <div style="margin-bottom: 20px;">
@@ -61,7 +214,7 @@ require_once(TEMPLATE_PATH . 'customer/inc/header.inc.php');
                     <span><?php echo $hesklang['req_marked_with']; ?></span>
                     <span class="label required"></span>
                 </div>
-                <form class="form form-submit-ticket ticket-create <?php echo count($_SESSION['iserror']) ? 'invalid' : ''; ?>" method="post" action="submit_ticket.php?submit=1" aria-label="<?php echo $hesklang['create_a_ticket']; ?>" name="form1" id="form1" enctype="multipart/form-data" onsubmit="<?php if ($hesk_settings['submitting_wait']): ?>hesk_showLoadingMessage('recaptcha-submit');<?php endif; ?>" <?php echo $hesk_settings['disable_autofill_customer'] ? 'autocomplete="off" aria-autocomplete="none"' : ''; ?>>
+                <form class="form form-submit-ticket form-submit-ticket--prototype ticket-create <?php echo count($_SESSION['iserror']) ? 'invalid' : ''; ?>" method="post" action="submit_ticket.php?submit=1" aria-label="<?php echo $hesklang['create_a_ticket']; ?>" name="form1" id="form1" enctype="multipart/form-data" onsubmit="<?php if ($hesk_settings['submitting_wait']): ?>hesk_showLoadingMessage('recaptcha-submit');<?php endif; ?>" <?php echo $hesk_settings['disable_autofill_customer'] ? 'autocomplete="off" aria-autocomplete="none"' : ''; ?>>
                     <?php if (!$customerLoggedIn) { ?>
                     <div class="form-group">
                         <label class="label required" for="name"><?php echo $hesklang['name']; ?>:</label>
