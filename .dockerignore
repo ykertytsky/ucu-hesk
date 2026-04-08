@@ -1,0 +1,10 @@
+.git
+.gitignore
+*.md
+docs/
+.DS_Store
+node_modules
+vendor/*/tests
+vendor/*/Tests
+*.log
+install.bak
