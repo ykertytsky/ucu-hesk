@@ -165,6 +165,9 @@ require_once(TEMPLATE_PATH . 'customer/inc/header.inc.php');
                         <input type="hidden" name="a" value="login">
                         <input type="hidden" name="goto" value="<?php echo $redirectUrl; ?>">
                         <button type="submit" class="btn btn-full" ripple="ripple" id="recaptcha-submit"><?php echo $hesklang['customer_login']; ?></button>
+                        <a href="google_auth.php?action=login" class="btn btn-full" style="background-color: #ffffff; color: #757575; border: 1px solid #ddd; margin-top: 10px; display: flex; justify-content: center; align-items: center; text-decoration: none;">
+                            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" style="width: 20px; height: 20px; margin-right: 10px;"> Увійти через Google
+                        </a>
                         <?php if ($displayForgotPasswordLink): ?>
                         <a href="login.php?forgot=1#modal-contents" data-modal="#forgot-modal" title="<?php echo $hesklang['opens_dialog']; ?>" role="button" class="link"><?php echo $hesklang['customer_forgot_password']; ?></a>
                         <?php endif; ?>
