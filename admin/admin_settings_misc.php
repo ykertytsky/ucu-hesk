@@ -375,6 +375,19 @@ hesk_handle_messages();
                     </label>
                     <input type="text" class="form-control" name="s_ip_whois_url" maxlength="255" value="<?php echo $hesk_settings['ip_whois']; ?>">
                 </div>
+                <div class="form-group">
+                    <label>
+                        <span><?php echo $hesklang['dashboard_sync_url']; ?></span>
+                    </label>
+                    <input type="text" class="form-control" name="s_dashboard_export_url" maxlength="255" value="<?php echo hesk_htmlentities($hesk_settings['dashboard_export_url']); ?>">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <span><?php echo $hesklang['dashboard_sync_token']; ?></span>
+                    </label>
+                    <input type="text" class="form-control" name="s_dashboard_export_token" maxlength="255" value="<?php echo hesk_htmlentities($hesk_settings['dashboard_export_token']); ?>">
+                    <p class="field-desc"><?php echo $hesklang['dashboard_sync_token_note']; ?></p>
+                </div>
                 <tr>
                     <td><label> </label></td>
                 </tr>

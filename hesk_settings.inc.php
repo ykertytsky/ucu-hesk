@@ -261,6 +261,8 @@ $hesk_settings['format_datepicker_php']='d/m/Y';
 
 // --> Other
 $hesk_settings['ip_whois']='https://whois.domaintools.com/{IP}';
+$hesk_settings['dashboard_export_url']='';
+$hesk_settings['dashboard_export_token']='';
 $hesk_settings['maintenance_mode']=0;
 $hesk_settings['alink']=1;
 $hesk_settings['submit_notice']=0;

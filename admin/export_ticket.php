@@ -45,6 +45,40 @@ require_once(HESK_PATH . 'inc/priorities.inc.php');
 require_once(HESK_PATH . 'inc/statuses.inc.php');
 require(HESK_PATH . 'inc/export_functions.inc.php');
 
+if (hesk_GET('dashboard'))
+{
+    $dashboard_result = hesk_export_push_to_dashboard($sql, true);
+
+    $_SESSION['dashboard_sync_console_log'] = hesk_dashboard_sync_client_log_data(
+        $dashboard_result,
+        'single_ticket',
+        array('trackid' => $trackingID)
+    );
+
+    if ($dashboard_result['success'])
+    {
+        hesk_process_messages(
+            sprintf($hesklang['dashboard_sync_success'], intval($dashboard_result['tickets_exported']), intval($dashboard_result['http_code'])),
+            'admin_ticket.php?track='.$trackingID.'&Refresh='.mt_rand(10000,99999),
+            'SUCCESS'
+        );
+    }
+
+    if ($dashboard_result['tickets_exported'] < 1)
+    {
+        hesk_process_messages(
+            $dashboard_result['error_message'],
+            'admin_ticket.php?track='.$trackingID.'&Refresh='.mt_rand(10000,99999),
+            'NOTICE'
+        );
+    }
+
+    hesk_process_messages(
+        sprintf($hesklang['dashboard_sync_failed'], $dashboard_result['error_message']),
+        'admin_ticket.php?track='.$trackingID.'&Refresh='.mt_rand(10000,99999)
+    );
+}
+
 list($success_msg, $tickets_exported) = hesk_export_to_XML($sql, true);
 
 if ($tickets_exported == 1)

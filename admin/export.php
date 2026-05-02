@@ -43,6 +43,7 @@ require_once(HESK_PATH . 'inc/priorities.inc.php');
 
 // Load statuses
 require_once(HESK_PATH . 'inc/statuses.inc.php');
+require_once(HESK_PATH . 'inc/export_functions.inc.php');
 
 // Set default values
 define('CALENDAR',1);
@@ -356,10 +357,38 @@ while ($row=hesk_dbFetchAssoc($res2))
 if (isset($_GET['w'])) {
     if (defined('HESK_DEMO')) {
         hesk_process_messages($hesklang['ddemo'], 'export.php', 'NOTICE');
+    } elseif (isset($_GET['send_dashboard'])) {
+        hesk_token_check();
+        $dashboard_result = hesk_export_push_to_dashboard($sql, false, $history, $replies);
     } else {
-        require_once(HESK_PATH . 'inc/export_functions.inc.php');
         list($success_msg, $tickets_exported) = hesk_export_to_XML($sql, false, $history, $replies);
     }
+}
+
+$dashboard_sync_enabled = !empty($hesk_settings['dashboard_export_url']);
+$dashboard_sync_state = hesk_get_dashboard_sync_state();
+
+if (!$dashboard_sync_enabled)
+{
+    $dashboard_sync_summary = $hesklang['dashboard_sync_not_configured'];
+}
+elseif (!empty($dashboard_sync_state['last_error']) && !empty($dashboard_sync_state['last_attempt_at']))
+{
+    $dashboard_sync_summary = sprintf($hesklang['dashboard_sync_last_failed'], hesk_date($dashboard_sync_state['last_attempt_at'], true));
+    $dashboard_sync_summary .= '<br />' . sprintf($hesklang['dashboard_sync_last_error'], hesk_htmlentities($dashboard_sync_state['last_error']));
+}
+elseif (!empty($dashboard_sync_state['last_success_at']))
+{
+    $dashboard_sync_summary = sprintf($hesklang['dashboard_sync_last_success'], hesk_date($dashboard_sync_state['last_success_at'], true));
+
+    if (isset($dashboard_sync_state['last_ticket_count']))
+    {
+        $dashboard_sync_summary .= '<br />' . sprintf($hesklang['dashboard_sync_last_ticket_count'], intval($dashboard_sync_state['last_ticket_count']));
+    }
+}
+else
+{
+    $dashboard_sync_summary = $hesklang['dashboard_sync_never'];
 }
 
 /* Print header */
@@ -383,6 +412,26 @@ if (isset($success_msg))
 		hesk_show_notice($hesklang['n2ex']);
 	}
 }
+
+if (isset($dashboard_result))
+{
+    if ($dashboard_result['success'])
+    {
+        hesk_show_success(sprintf($hesklang['dashboard_sync_success'], intval($dashboard_result['tickets_exported']), intval($dashboard_result['http_code'])));
+    }
+    elseif ($dashboard_result['tickets_exported'] < 1)
+    {
+        hesk_show_notice($dashboard_result['error_message']);
+    }
+    else
+    {
+        hesk_show_error(sprintf($hesklang['dashboard_sync_failed'], hesk_htmlentities($dashboard_result['error_message'])));
+    }
+
+    hesk_dashboard_sync_emit_console_script_from_data(
+        hesk_dashboard_sync_client_log_data($dashboard_result, 'bulk_export')
+    );
+}
 ?>
 <div class="main__content reports">
     <h2>
@@ -398,6 +447,9 @@ if (isset($success_msg))
             </div>
         </div>
     </h2>
+    <div role="status" class="notification blue">
+        <b><?php echo $hesklang['dashboard_sync_status']; ?>:</b> <?php echo $dashboard_sync_summary; ?>
+    </div>
     <form name="showt" action="export.php" method="get">
         <div class="reports__range pl0">
             <h4><?php echo $hesklang['dtrg']; ?></h4>
@@ -582,7 +634,9 @@ if (isset($success_msg))
         </section>
         <div class="reports__export">
             <input type="hidden" name="cot" value="1">
+            <input type="hidden" name="token" value="<?php hesk_token_echo(); ?>">
             <button class="btn btn-full" ripple="ripple" data-action="reports-export"><?php echo $hesklang['export_btn']; ?></button>
+            <button class="btn btn-full" type="submit" name="send_dashboard" value="1" ripple="ripple" data-action="reports-dashboard" <?php echo $dashboard_sync_enabled ? '' : 'disabled'; ?>><?php echo $hesklang['dashboard_sync_btn']; ?></button>
         </div>
     </form>
 </div>

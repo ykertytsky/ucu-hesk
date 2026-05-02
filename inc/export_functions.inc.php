@@ -18,6 +18,224 @@ if (!defined('IN_SCRIPT')) {die('Invalid attempt');}
 
 function hesk_export_to_XML($sql, $export_selected = false, $export_history = false, $export_replies = false)
 {
+    global $hesk_settings, $hesklang;
+
+    list($save_to, $tickets_exported, $export_name, $flush_me) = hesk_export_build_xml_file($sql, $export_selected, $export_history, $export_replies);
+
+    if ($tickets_exported < 1)
+    {
+        return array('', 0);
+    }
+
+    $flush_me .= hesk_date() . " | {$hesklang['cZIP']}<br />\n";
+    $save_to_zip = hesk_export_zip_xml_file($save_to, $export_name);
+
+    // Delete XML, just leave the Zip archive
+    hesk_unlink($save_to);
+
+    // Echo memory peak usage
+    $flush_me .= hesk_date() . " | " . sprintf($hesklang['pmem'], (@memory_get_peak_usage(true) / 1048576)) . "<br />\r\n";
+
+    // We're done!
+    $flush_me .= hesk_date() . " | {$hesklang['fZIP']}<br /><br />";
+
+    // Success message
+    $referer = isset($_SERVER['HTTP_REFERER']) ? hesk_input($_SERVER['HTTP_REFERER']) : 'export.php';
+    $referer = str_replace('&amp;','&',$referer);
+    if (strpos($referer, 'export.php'))
+    {
+        $referer = 'export.php';
+    }
+
+    $success_msg = $hesk_settings['debug_mode'] ? $flush_me : '<br /><br />';
+    $success_msg .= $hesklang['step1'] . ': <a href="' . $save_to_zip . '">' . $hesklang['ch2d'] . '</a><br /><br />' . $hesklang['step2'] . ': <a href="export.php?delete='.urlencode($export_name).'&amp;goto='.urlencode($referer).'">' . $hesklang['dffs'] . '</a>';
+
+    return array($success_msg, $tickets_exported);
+
+} // END hesk_export_to_XML()
+
+
+function hesk_export_push_to_dashboard($sql, $export_selected = false, $export_history = false, $export_replies = false)
+{
+    global $hesk_settings, $hesklang;
+
+    $attempted_at = date('Y-m-d H:i:s');
+    $result = array(
+        'success' => false,
+        'tickets_exported' => 0,
+        'http_code' => 0,
+        'error_message' => '',
+    );
+
+    if (empty($hesk_settings['dashboard_export_url']))
+    {
+        $result['error_message'] = $hesklang['dashboard_sync_not_configured'];
+        hesk_write_dashboard_sync_state(array(
+            'last_attempt_at' => $attempted_at,
+            'last_http_code' => 0,
+            'last_error' => $result['error_message'],
+            'last_ticket_count' => 0,
+        ));
+
+        return $result;
+    }
+
+    list($save_to, $tickets_exported, $export_name) = hesk_export_build_xml_file($sql, $export_selected, $export_history, $export_replies);
+    $result['tickets_exported'] = $tickets_exported;
+
+    if ($tickets_exported < 1)
+    {
+        $result['error_message'] = $hesklang['n2ex'];
+        hesk_write_dashboard_sync_state(array(
+            'last_attempt_at' => $attempted_at,
+            'last_http_code' => 0,
+            'last_error' => $result['error_message'],
+            'last_ticket_count' => 0,
+        ));
+
+        return $result;
+    }
+
+    if (!function_exists('curl_init'))
+    {
+        hesk_unlink($save_to);
+
+        $result['error_message'] = $hesklang['dashboard_sync_curl_missing'];
+        hesk_write_dashboard_sync_state(array(
+            'last_attempt_at' => $attempted_at,
+            'last_http_code' => 0,
+            'last_error' => $result['error_message'],
+            'last_ticket_count' => $tickets_exported,
+        ));
+
+        return $result;
+    }
+
+    if ( ! class_exists('CURLFile'))
+    {
+        hesk_unlink($save_to);
+
+        $result['error_message'] = $hesklang['dashboard_sync_curlfile_missing'];
+        hesk_write_dashboard_sync_state(array(
+            'last_attempt_at' => $attempted_at,
+            'last_http_code' => 0,
+            'last_error' => $result['error_message'],
+            'last_ticket_count' => $tickets_exported,
+        ));
+
+        return $result;
+    }
+
+    if ( ! is_readable($save_to))
+    {
+        hesk_unlink($save_to);
+
+        $result['error_message'] = $hesklang['dashboard_sync_read_failed'];
+        hesk_write_dashboard_sync_state(array(
+            'last_attempt_at' => $attempted_at,
+            'last_http_code' => 0,
+            'last_error' => $result['error_message'],
+            'last_ticket_count' => $tickets_exported,
+        ));
+
+        return $result;
+    }
+
+    // Next.js route expects multipart/form-data with field name "file" (see request.formData() / formData.get("file")).
+    // Do not send Content-Type yourself — cURL sets multipart boundary + Content-Type.
+    $upload_basename = $export_name . '.xml';
+    $post_fields = array(
+        'file' => new CURLFile($save_to, 'application/xml', $upload_basename),
+    );
+
+    // Expect: 100-continue on large POST bodies often breaks reverse proxies and some app servers (RST mid-read).
+    $headers = array(
+        'Expect:',
+    );
+
+    if (!empty($hesk_settings['dashboard_export_token']))
+    {
+        $headers[] = 'Authorization: Bearer ' . $hesk_settings['dashboard_export_token'];
+    }
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $hesk_settings['dashboard_export_url']);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'HESK-DashboardExport/' . (isset($hesk_settings['hesk_version']) ? $hesk_settings['hesk_version'] : '3'));
+    if (defined('CURL_HTTP_VERSION_1_1'))
+    {
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+    }
+    if (defined('CURLOPT_NOSIGNAL'))
+    {
+        curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+    }
+
+    $response = curl_exec($ch);
+    $http_code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    hesk_curl_close($ch);
+
+    hesk_unlink($save_to);
+
+    $result['http_code'] = $http_code;
+
+    if ($response === false)
+    {
+        $result['error_message'] = $curl_error ? $curl_error : $hesklang['dashboard_sync_request_failed'];
+        hesk_write_dashboard_sync_state(array(
+            'last_attempt_at' => $attempted_at,
+            'last_http_code' => $http_code,
+            'last_error' => $result['error_message'],
+            'last_ticket_count' => $tickets_exported,
+        ));
+
+        return $result;
+    }
+
+    if ($http_code < 200 || $http_code >= 300)
+    {
+        $msg = sprintf($hesklang['dashboard_sync_http_error'], $http_code);
+        if ($response !== false && strlen($response))
+        {
+            $decoded = json_decode($response, true);
+            if (is_array($decoded) && isset($decoded['error']) && is_string($decoded['error']) && strlen($decoded['error']))
+            {
+                $msg .= ' ' . sprintf($hesklang['dashboard_sync_remote_error'], $decoded['error']);
+            }
+        }
+        $result['error_message'] = $msg;
+        hesk_write_dashboard_sync_state(array(
+            'last_attempt_at' => $attempted_at,
+            'last_http_code' => $http_code,
+            'last_error' => $result['error_message'],
+            'last_ticket_count' => $tickets_exported,
+        ));
+
+        return $result;
+    }
+
+    $result['success'] = true;
+    hesk_write_dashboard_sync_state(array(
+        'last_attempt_at' => $attempted_at,
+        'last_success_at' => $attempted_at,
+        'last_http_code' => $http_code,
+        'last_error' => '',
+        'last_ticket_count' => $tickets_exported,
+    ));
+
+    return $result;
+
+} // END hesk_export_push_to_dashboard()
+
+
+function hesk_export_build_xml_file($sql, $export_selected = false, $export_history = false, $export_replies = false)
+{
     global $hesk_settings, $hesklang, $ticket, $my_cat;
 
 	// We'll need HH:MM:SS format for hesk_date() here
@@ -43,28 +261,14 @@ function hesk_export_to_XML($sql, $export_selected = false, $export_history = fa
     }
 
 	// This will be the export directory
-	$export_dir = HESK_PATH.$hesk_settings['cache_dir'].'/';
+	$export_dir = hesk_export_get_cache_dir();
 
 	// This will be the name of the export and the XML file
     $export_name = 'hesk_export_'.date('Y-m-d_H-i-s').'_'.mt_rand(100000,999999);
     $save_to = $export_dir . $export_name . '.xml';
 
 	// Do we have the export directory?
-	if ( is_dir($export_dir) || ( @mkdir($export_dir, 0777) && is_writable($export_dir) ) )
-    {
-        // Is there an index.htm file?
-        if ( ! file_exists($export_dir.'index.htm'))
-        {
-            @file_put_contents($export_dir.'index.htm', '');
-        }
-
-		// Cleanup old files
-		hesk_purge_cache('export', 86400);
-    }
-    else
-    {
-    	hesk_error($hesklang['ede']);
-    }
+    hesk_prepare_export_cache_dir($export_dir);
 
 	// Make sure the file can be saved and written to
 	@file_put_contents($save_to, '');
@@ -74,7 +278,6 @@ function hesk_export_to_XML($sql, $export_selected = false, $export_history = fa
 	}
 
 	// Start generating the report message and generating the export
-	$success_msg = '';
 	$flush_me = '<br /><br />';
 	$flush_me .= hesk_date() . " | {$hesklang['inite']} ";
 
@@ -465,66 +668,7 @@ function hesk_export_to_XML($sql, $export_selected = false, $export_history = fa
 		// Log how many rows we exported
 		$flush_me .= hesk_date() . " | " . sprintf($hesklang['nrow'], $tickets_exported) . "<br />\n";
 
-		// We will convert XML to Zip to save a lot of space
-		$save_to_zip = $export_dir.$export_name.'.zip';
-
-		// Log start of Zip creation
-		$flush_me .= hesk_date() . " | {$hesklang['cZIP']}<br />\n";
-
-		// Preferrably use the zip extension
-	    if (extension_loaded('zip'))
-	    {
-		    $save_to_zip = $export_dir.$export_name.'.zip';
-
-			$zip = new ZipArchive;
-			$res = $zip->open($save_to_zip, ZipArchive::CREATE);
-			if ($res === TRUE)
-			{
-				$zip->addFile($save_to, "{$export_name}.xml");
-				$zip->close();
-			}
-			else
-			{
-				die("{$hesklang['eZIP']} <$save_to_zip>\n");
-			}
-
-	    }
-		// Some servers have ZipArchive class enabled anyway - can we use it?
-		elseif ( class_exists('ZipArchive') )
-		{
-			require(HESK_PATH . 'inc/zip/Zip.php');
-			$zip = new Zip();
-			$zip->addLargeFile($save_to, "{$export_name}.xml");
-			$zip->finalize();
-			$zip->setZipFile($save_to_zip);
-		}
-		// If not available, use a 3rd party Zip class included with HESK
-		else
-		{
-			require(HESK_PATH . 'inc/zip/pclzip.lib.php');
-			$zip = new PclZip($save_to_zip);
-			$zip->add($save_to, PCLZIP_OPT_REMOVE_ALL_PATH);
-		}
-
-		// Delete XML, just leave the Zip archive
-		hesk_unlink($save_to);
-
-		// Echo memory peak usage
-		$flush_me .= hesk_date() . " | " . sprintf($hesklang['pmem'], (@memory_get_peak_usage(true) / 1048576)) . "<br />\r\n";
-
-		// We're done!
-		$flush_me .= hesk_date() . " | {$hesklang['fZIP']}<br /><br />";
-
-        // Success message
-        $referer = isset($_SERVER['HTTP_REFERER']) ? hesk_input($_SERVER['HTTP_REFERER']) : 'export.php';
-        $referer = str_replace('&amp;','&',$referer);
-        if (strpos($referer, 'export.php'))
-        {
-            $referer = 'export.php';
-        }
-
-        $success_msg .= $hesk_settings['debug_mode'] ? $flush_me : '<br /><br />';
-        $success_msg .= $hesklang['step1'] . ': <a href="' . $save_to_zip . '">' . $hesklang['ch2d'] . '</a><br /><br />' . $hesklang['step2'] . ': <a href="export.php?delete='.urlencode($export_name).'&amp;goto='.urlencode($referer).'">' . $hesklang['dffs'] . '</a>';
+        return array($save_to, $tickets_exported, $export_name, $flush_me);
 	}
     // No tickets exported, cleanup
     else
@@ -532,9 +676,175 @@ function hesk_export_to_XML($sql, $export_selected = false, $export_history = fa
 		hesk_unlink($save_to);
     }
 
-    return array($success_msg, $tickets_exported);
+    return array('', $tickets_exported, $export_name, $flush_me);
 
-} // END hesk_export_to_XML()
+} // END hesk_export_build_xml_file()
+
+
+function hesk_export_zip_xml_file($save_to, $export_name)
+{
+    global $hesk_settings, $hesklang;
+
+    $export_dir = hesk_export_get_cache_dir();
+    $save_to_zip = $export_dir.$export_name.'.zip';
+
+    // Log start of Zip creation
+    if (extension_loaded('zip'))
+    {
+        $zip = new ZipArchive;
+        $res = $zip->open($save_to_zip, ZipArchive::CREATE);
+        if ($res === TRUE)
+        {
+            $zip->addFile($save_to, "{$export_name}.xml");
+            $zip->close();
+        }
+        else
+        {
+            die("{$hesklang['eZIP']} <$save_to_zip>\n");
+        }
+    }
+    // Some servers have ZipArchive class enabled anyway - can we use it?
+    elseif ( class_exists('ZipArchive') )
+    {
+        require(HESK_PATH . 'inc/zip/Zip.php');
+        $zip = new Zip();
+        $zip->addLargeFile($save_to, "{$export_name}.xml");
+        $zip->finalize();
+        $zip->setZipFile($save_to_zip);
+    }
+    // If not available, use a 3rd party Zip class included with HESK
+    else
+    {
+        require(HESK_PATH . 'inc/zip/pclzip.lib.php');
+        $zip = new PclZip($save_to_zip);
+        $zip->add($save_to, PCLZIP_OPT_REMOVE_ALL_PATH);
+    }
+
+    return $save_to_zip;
+}
+
+
+function hesk_export_get_cache_dir()
+{
+    global $hesk_settings;
+
+    return HESK_PATH . $hesk_settings['cache_dir'] . '/';
+}
+
+
+function hesk_prepare_export_cache_dir($export_dir)
+{
+    global $hesklang;
+
+    if ( is_dir($export_dir) || ( @mkdir($export_dir, 0777) && is_writable($export_dir) ) )
+    {
+        if ( ! file_exists($export_dir.'index.htm'))
+        {
+            @file_put_contents($export_dir.'index.htm', '');
+        }
+
+        hesk_purge_cache('export', 86400);
+
+        return true;
+    }
+
+    hesk_error($hesklang['ede']);
+}
+
+
+function hesk_get_dashboard_sync_state()
+{
+    $file = hesk_get_dashboard_sync_state_file();
+
+    if (!file_exists($file))
+    {
+        return array();
+    }
+
+    $contents = @file_get_contents($file);
+    if ($contents === false || $contents === '')
+    {
+        return array();
+    }
+
+    $state = json_decode($contents, true);
+
+    return is_array($state) ? $state : array();
+}
+
+
+function hesk_write_dashboard_sync_state($state)
+{
+    $export_dir = hesk_export_get_cache_dir();
+    hesk_prepare_export_cache_dir($export_dir);
+
+    $existing_state = hesk_get_dashboard_sync_state();
+    $new_state = array_merge($existing_state, $state);
+
+    @file_put_contents(hesk_get_dashboard_sync_state_file(), json_encode($new_state));
+}
+
+
+function hesk_get_dashboard_sync_state_file()
+{
+    return hesk_export_get_cache_dir() . 'dashboard_export_sync.json';
+}
+
+
+/**
+ * Build a JSON-serializable payload for browser console logging after a dashboard sync attempt.
+ *
+ * @param array $dashboard_result Return value from hesk_export_push_to_dashboard()
+ * @param string $context Logical source, e.g. bulk_export or single_ticket
+ * @param array $extra Optional extra scalar fields (e.g. trackid)
+ * @return array
+ */
+function hesk_dashboard_sync_client_log_data($dashboard_result, $context, $extra = array())
+{
+    $base = array(
+        'context' => (string) $context,
+        'success' => !empty($dashboard_result['success']),
+        'tickets_exported' => isset($dashboard_result['tickets_exported']) ? (int) $dashboard_result['tickets_exported'] : 0,
+        'http_code' => isset($dashboard_result['http_code']) ? (int) $dashboard_result['http_code'] : 0,
+        'error_message' => isset($dashboard_result['error_message']) ? (string) $dashboard_result['error_message'] : '',
+    );
+
+    if (!is_array($extra) || !count($extra))
+    {
+        return $base;
+    }
+
+    foreach ($extra as $k => $v)
+    {
+        if (is_string($k) && (is_string($v) || is_int($v) || is_float($v) || is_bool($v)))
+        {
+            $base[$k] = $v;
+        }
+    }
+
+    return $base;
+}
+
+
+/**
+ * Emit a one-line script that logs dashboard sync results to the browser console.
+ *
+ * @param array $data From hesk_dashboard_sync_client_log_data()
+ */
+function hesk_dashboard_sync_emit_console_script_from_data(array $data)
+{
+    $json = json_encode(
+        $data,
+        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE
+    );
+
+    if ($json === false)
+    {
+        return;
+    }
+
+    echo '<script>console.log("[HESK dashboard sync]", ' . $json . ');</script>' . "\n";
+}
 
 
 function hesk_escape_CDATA($in)

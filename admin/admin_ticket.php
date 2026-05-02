@@ -918,6 +918,13 @@ require_once(HESK_PATH . 'inc/show_admin_nav.inc.php');
 /* This will handle error, success and notice messages */
 hesk_handle_messages();
 
+if (!empty($_SESSION['dashboard_sync_console_log']) && is_array($_SESSION['dashboard_sync_console_log']))
+{
+    require_once(HESK_PATH . 'inc/export_functions.inc.php');
+    hesk_dashboard_sync_emit_console_script_from_data($_SESSION['dashboard_sync_console_log']);
+    unset($_SESSION['dashboard_sync_console_log']);
+}
+
 // Prepare special custom fields
 foreach ($hesk_settings['custom_fields'] as $k=>$v)
 {
@@ -2793,6 +2800,17 @@ function hesk_getAdminButtons($isReply=0,$white=1)
             </svg> 
             '.$hesklang['btn_export'].'
         </a>';
+
+        if (!empty($hesk_settings['dashboard_export_url']))
+        {
+            $buttons['more'][] = '
+            <a id="sendtickettodashboard" href="export_ticket.php?track='.$trackingID.'&amp;dashboard=1&amp;Refresh='.mt_rand(10000,99999).'&amp;token='.hesk_token_echo(0).'" title="'.$hesklang['dashboard_sync_btn'].'">
+                <svg class="icon icon-export">
+                    <use xlink:href="'. HESK_PATH .'img/sprite.svg#icon-export"></use>
+                </svg>
+                '.$hesklang['dashboard_sync_btn'].'
+            </a>';
+        }
     }
 
     // Anonymize ticket
