@@ -385,7 +385,7 @@ hesk_handle_messages();
                     <label>
                         <span><?php echo $hesklang['dashboard_sync_token']; ?></span>
                     </label>
-                    <input type="text" class="form-control" name="s_dashboard_export_token" maxlength="255" value="<?php echo hesk_htmlentities($hesk_settings['dashboard_export_token']); ?>">
+                    <input type="password" class="form-control" name="s_dashboard_export_token" maxlength="255" value="<?php echo hesk_htmlentities($hesk_settings['dashboard_export_token']); ?>">
                     <p class="field-desc"><?php echo $hesklang['dashboard_sync_token_note']; ?></p>
                 </div>
                 <tr>
