@@ -673,6 +673,10 @@ if ($section === 'GENERAL') {
 	/* --> Other */
 	$set['ip_whois']		= hesk_validateURL( hesk_POST('s_ip_whois_url', 'https://whois.domaintools.com/{IP}') );
 
+    $dashboard_export_url = trim(hesk_POST('s_dashboard_export_url'));
+    $set['dashboard_export_url'] = strlen($dashboard_export_url) ? hesk_validateURL($dashboard_export_url) : '';
+    $set['dashboard_export_token'] = hesk_input(hesk_POST('s_dashboard_export_token'));
+
 // If no {IP} tag append it to the end
 	if ( strlen($set['ip_whois']) == 0 )
 	{
@@ -1019,6 +1023,8 @@ $hesk_settings[\'format_datepicker_php\']=\'' . hesk_getProperty($set, 'format_d
 
 // --> Other
 $hesk_settings[\'ip_whois\']=\'' . hesk_getProperty($set, 'ip_whois') . '\';
+$hesk_settings[\'dashboard_export_url\']=\'' . hesk_getProperty($set, 'dashboard_export_url') . '\';
+$hesk_settings[\'dashboard_export_token\']=\'' . hesk_getProperty($set, 'dashboard_export_token') . '\';
 $hesk_settings[\'maintenance_mode\']=' . hesk_getProperty($set, 'maintenance_mode') . ';
 $hesk_settings[\'alink\']=' . hesk_getProperty($set, 'alink') . ';
 $hesk_settings[\'submit_notice\']=' . hesk_getProperty($set, 'submit_notice') . ';

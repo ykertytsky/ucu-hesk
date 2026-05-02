@@ -30,5 +30,7 @@ $hesk_settings['pop3_password']         = $hesklang['hdemo'];
 $hesk_settings['imap_host_name']        = $hesklang['hdemo'];
 $hesk_settings['imap_user']             = $hesklang['hdemo'];
 $hesk_settings['imap_password']         = $hesklang['hdemo'];
+$hesk_settings['dashboard_export_url']  = $hesklang['hdemo'];
+$hesk_settings['dashboard_export_token']= $hesklang['hdemo'];
 $hesk_settings['recaptcha_public_key']  = $hesklang['hdemo'];
 $hesk_settings['recaptcha_private_key'] = $hesklang['hdemo'];

@@ -75,7 +75,11 @@ $hesk_settings['noreply_mail']    // From email address
 $hesk_settings['smtp_host']       // SMTP server hostname
 $hesk_settings['customer_accounts'] // 0=disabled, 1=optional, 2=required
 $hesk_settings['debug_mode']      // 0=off, 1=on
+$hesk_settings['dashboard_export_url']   // External HTTP endpoint for “Send to dashboard” (empty = disabled)
+$hesk_settings['dashboard_export_token']   // Optional Bearer token for that endpoint
 ```
+
+See [dashboard-export-integration.md](dashboard-export-integration.md) for the full integration guide.
 
 ---
 
@@ -467,6 +471,9 @@ Based on the strategic brief (`hesk-ucu-strategic-brief.html`), planned extensio
 - Create KB articles for common UCU support requests
 - Escalation cron for overdue ticket alerts
 
+### Implemented integrations
+- **Dashboard export (HTTP push)** — Staff can POST ticket XML exports to a configurable URL with optional Bearer auth; see [dashboard-export-integration.md](dashboard-export-integration.md) for the full API contract, admin UI, sync state file, and troubleshooting.
+
 ### Planned Integrations
 - **Google OAuth SSO** — integrate `inc/oauth_functions.inc.php` for customer login via Google
 - **Structured intake forms** — add category-specific custom fields for different request types
@@ -485,6 +492,7 @@ Based on the strategic brief (`hesk-ucu-strategic-brief.html`), planned extensio
 | Process inbound email | `inc/pipe_functions.inc.php` |
 | Send email notification | `inc/email_functions.inc.php` |
 | Authenticate a user | `login.php`, `inc/common.inc.php` |
+| Push tickets to an external dashboard API | [dashboard-export-integration.md](dashboard-export-integration.md), `inc/export_functions.inc.php`, `admin/export.php` |
 | Configure the app | `hesk_settings.inc.php` |
 | Manage staff permissions | `admin/manage_permission_groups.php`, `admin/manage_users.php` |
 | Manage knowledgebase | `admin/manage_knowledgebase.php` |
