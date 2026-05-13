@@ -174,6 +174,13 @@ function print_add_ticket()
         );
     }
 
+    // UI demo flow: always show category selection step first (matching stakeholder mocks)
+    // when ui_demo=1 is set and a category wasn't chosen yet.
+    $uiDemo = isset($_GET['ui_demo']) && $_GET['ui_demo'] === '1';
+    if ($uiDemo && empty($_GET['category']) && empty($_GET['catid']) && count($hesk_settings['categories']) > 0) {
+        return print_select_category($customerUserContext);
+    }
+
 	$number_of_categories = count($hesk_settings['categories']);
 
 	if ($number_of_categories == 0)

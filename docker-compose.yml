@@ -1,0 +1,29 @@
+# Local stack: PHP/Apache (custom image) + MySQL 8.
+# From repo root: docker compose up -d
+# Customer UI: http://localhost:8000/  Admin: http://localhost:8000/admin
+name: ucu-hesk
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: hesk
+      MYSQL_USER: hesk
+      MYSQL_PASSWORD: hesk_local
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - hesk_mysql_data:/var/lib/mysql
+
+  web:
+    image: ucu-hesk-web:latest
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+
+volumes:
+  hesk_mysql_data:

@@ -5,3 +5,163 @@ and ensure these changes are included in the bundled css.
 Please only change this file if you know what you are doing.
 Any general thematic changes should rather be done as part of /theme changes of theme_overrides.css
 */
+
+/* Prototype pass: structure and sizing like reference screens. */
+.page-index .help-search {
+    margin-bottom: 28px;
+}
+
+.page-index .search__title {
+    margin-top: 8px;
+    margin-bottom: 14px;
+    font-size: 44px;
+    line-height: 1.18;
+}
+
+.page-index .search__form .form-group {
+    max-width: 840px;
+}
+
+.page-index .search__form .form-group input {
+    height: 62px;
+    border-radius: 14px;
+}
+
+.page-index .nav--prototype-home {
+    margin: 18px auto 14px;
+    max-width: 1040px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.page-index .nav--prototype-home .navlink {
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    min-height: 108px;
+    border-radius: 18px;
+    box-shadow: var(--shadow_med) var(--shadow-1-30);
+}
+
+.page-index .nav--prototype-home .icon-in-circle {
+    width: 42px;
+    height: 42px;
+    margin-right: 14px;
+    flex-shrink: 0;
+}
+
+.page-index .nav--prototype-home .navlink__title {
+    font-size: 18px;
+    line-height: 1.25;
+}
+
+.page-index .nav--prototype-home .navlink__descr {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.page-category-select .select__title {
+    margin-bottom: 20px;
+    font-size: 22px;
+}
+
+.page-category-select .nav--prototype-categories {
+    margin: 6px auto 6px;
+    max-width: 1080px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(320px, 1fr));
+    gap: 10px 12px;
+}
+
+.page-category-select .nav--prototype-categories .navlink {
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    min-height: 84px;
+    border-radius: 18px;
+    box-shadow: var(--shadow_med) var(--shadow-1-30);
+}
+
+.page-category-select .nav--prototype-categories .icon-in-circle {
+    width: 40px;
+    height: 40px;
+}
+
+.page-category-select .nav--prototype-categories .navlink__title {
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.page-category-select .nav--prototype-categories .navlink__descr {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.page-category-select .nav--prototype-categories .navlink--other {
+    grid-column: 1 / -1;
+    justify-self: center;
+    max-width: 440px;
+}
+
+.page-create-ticket .article__heading--form {
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+.page-create-ticket .article-heading-tip {
+    text-align: center;
+    margin-bottom: 14px;
+}
+
+.page-create-ticket .form-submit-ticket--prototype {
+    max-width: 760px;
+    margin: 0 auto 28px;
+    padding: 24px 24px 30px;
+    border-radius: 10px;
+    box-shadow: var(--shadow_small) var(--shadow-1-20);
+}
+
+.page-create-ticket .form-submit-ticket--prototype .form-group,
+.page-create-ticket .form-submit-ticket--prototype .param {
+    max-width: none;
+    margin-bottom: 16px;
+}
+
+.page-create-ticket .form-submit-ticket--prototype input.form-control,
+.page-create-ticket .form-submit-ticket--prototype select.form-control {
+    height: 42px;
+}
+
+.page-create-ticket .form-submit-ticket--prototype textarea.form-control {
+    min-height: 170px;
+}
+
+.page-create-ticket .form-submit-ticket--prototype .form-footer {
+    margin-top: 6px;
+}
+
+@media (max-width: 1024px) {
+    .page-index .search__title {
+        font-size: 34px;
+    }
+
+    .page-index .nav--prototype-home {
+        grid-template-columns: 1fr;
+        max-width: 740px;
+    }
+}
+
+@media (max-width: 900px) {
+    .page-category-select .nav--prototype-categories {
+        grid-template-columns: 1fr;
+        max-width: 740px;
+    }
+
+    .page-create-ticket .form-submit-ticket--prototype {
+        padding: 16px 12px 20px;
+    }
+}
