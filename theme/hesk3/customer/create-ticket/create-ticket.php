@@ -58,6 +58,7 @@ require_once(TEMPLATE_PATH . 'customer/inc/header.inc.php');
         'crm' => 'Система CRM УКУ',
         'lms-moodle' => 'LMS Moodle',
         'lms-academy-ocean' => 'LMS Academy Ocean',
+        'info-marketing' => 'Відділ інформації та маркетингу',
         'other' => 'Інше',
     ];
     $demoCatKey = isset($_GET['demo_cat']) ? (string) $_GET['demo_cat'] : 'it-equipment';

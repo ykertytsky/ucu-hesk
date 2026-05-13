@@ -112,12 +112,19 @@ $hesk_settings['noreply_mail'] = 'support@your-domain.com';
 
 | Document | Description |
 |---|---|
+| [**docs/developer-handoff-ux-prototype.md**](./docs/developer-handoff-ux-prototype.md) | **IT / developer merge guide:** what changed on `/` and `ui_demo=1`, file checklist, sandbox steps, prototype vs production |
+| [docs/ui-ux-changes.md](./docs/ui-ux-changes.md) | Changelog-style summary of customer theme and demo-mode edits |
+| [docs/ui-ux-pull-request.md](./docs/ui-ux-pull-request.md) | Suggested PR title, scope, and test plan for the UX slice |
 | [docs/existing/index.md](./docs/existing/index.md) | Documentation home |
 | [docs/existing/quick-guide.md](./docs/existing/quick-guide.md) | Quick install guide for experienced webmasters |
 | [docs/existing/step-by-step-guide.md](./docs/existing/step-by-step-guide.md) | Detailed install guide |
 | [docs/existing/changelog.md](./docs/existing/changelog.md) | Version history |
 | [docs/existing/license.md](./docs/existing/license.md) | HESK End User License Agreement |
 | [docs/codebase-features.md](./docs/codebase-features.md) | Comprehensive codebase feature reference for developers and agents |
+
+### For university IT (merging into your HESK)
+
+Start with [**docs/developer-handoff-ux-prototype.md**](./docs/developer-handoff-ux-prototype.md). It explains which paths are safe to port, that **`ui_demo=1` is intentionally non-persistent** (no ticket written), and how that differs from normal category-driven submission.
 
 ---
 

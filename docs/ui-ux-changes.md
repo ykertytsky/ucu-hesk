@@ -1,10 +1,12 @@
 # UI/UX Changes Summary
 
-Created: 2026-04-07
+Created: 2026-04-07 · Last updated: 2026-05-13
 
 ## Goal
 
 Implement a clickable UI prototype for the customer portal that matches stakeholder mockups, without changing database schema or backend business logic.
+
+**Primary handoff for IT developers:** [developer-handoff-ux-prototype.md](./developer-handoff-ux-prototype.md) (merge checklist, prototype vs production, sandbox steps).
 
 ## Scope
 
@@ -27,14 +29,16 @@ Implement a clickable UI prototype for the customer portal that matches stakehol
 - Added `ui_demo` mode.
 - Rendered fixed category grid with Ukrainian labels/descriptions.
 - Made **all category cards clickable**.
-- Each card opens a form page in demo mode with category context.
+- Each card opens a form page in demo mode with category context (`demo_cat=…` in the query string).
+- Added category tile **«Відділ інформації та маркетингу»** with matching `demo_cat=info-marketing` slug.
+- **«Інше»** uses the same 2-column grid as other tiles (no `navlink--other` in demo mode) so the last row does not show an empty cell or a visually shifted “Other” block.
 
 ### 3) Demo form page (`theme/hesk3/customer/create-ticket/create-ticket.php`)
 - Added `ui_demo` branch for UI-only form rendering.
 - Added placeholders for all fields with neutral examples.
 - Updated dropdown “Локація” with the full requested option list.
 - Form remains non-destructive in demo mode (`onsubmit="return false;"`).
-- Shows selected category title based on clicked card (`demo_cat`).
+- Shows selected category title based on clicked card (`demo_cat`); map includes `info-marketing` → «Відділ інформації та маркетингу».
 
 ### 4) Routing (`index.php`)
 - For `ui_demo=1` without selected category, force category-selection step first.
@@ -49,8 +53,10 @@ Implement a clickable UI prototype for the customer portal that matches stakehol
 - `theme/hesk3/customer/create-ticket/category-select.php`
 - `theme/hesk3/customer/create-ticket/create-ticket.php`
 - `theme/hesk3/customer/css/core_overrides.css`
+- `docs/developer-handoff-ux-prototype.md`
 - `docs/ui-ux-changes.md`
 - `docs/ui-ux-pull-request.md`
+- `readme.md` (documentation index)
 
 ## Behaviour Notes
 

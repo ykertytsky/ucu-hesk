@@ -124,12 +124,22 @@ require_once(TEMPLATE_PATH . 'customer/inc/header.inc.php');
                             'other' => false,
                         ],
                         [
+                            'slug' => 'info-marketing',
+                            'title' => 'Відділ інформації та маркетингу',
+                            'descr' => 'Запити щодо комунікацій, бренду, реклами та публічних матеріалів УКУ.',
+                            'icon' => 'icon-info',
+                            'href' => 'index.php?a=add&ui_demo=1&category=' . rawurlencode((string) $firstCategoryId) . '&demo_cat=info-marketing',
+                            'other' => false,
+                        ],
+                        [
                             'slug' => 'other',
                             'title' => 'Інше',
                             'descr' => 'Якщо ваша категорія відсутня у списку',
                             'icon' => 'icon-actions',
                             'href' => 'index.php?a=add&ui_demo=1&category=' . rawurlencode((string) $firstCategoryId) . '&demo_cat=other',
-                            'other' => true,
+                            // Keep in the 2-column grid (do not use navlink--other): an odd count of
+                            // "normal" tiles plus a full-width centered "Інше" leaves a hole and looks shifted.
+                            'other' => false,
                         ],
                     ];
                     ?>
